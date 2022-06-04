@@ -1,0 +1,4 @@
+- [] init 
+    - [] git
+    - [] Kolman, Discrete Mathematical Structures algorithms
+- [] Move other random algorithms here if there are any
