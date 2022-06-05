@@ -1,4 +1,5 @@
-- [] init 
-    - [] git
-    - [] Kolman, Discrete Mathematical Structures algorithms
-- [] Move other random algorithms here if there are any
+- [x] init 
+    - [x] git
+    - [x] Kolman, Discrete Mathematical Structures algorithms
+- [x] Move other random algorithms here if there are any
+- [] Learn how to run Go debugger.
