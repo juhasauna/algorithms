@@ -1,6 +1,7 @@
 package concurrent
 
 import (
+	"algorithms/utils"
 	"fmt"
 	"time"
 )
@@ -18,7 +19,7 @@ func main() {
 }
 func consequtively(data []int) {
 
-	defer TimeTrack(time.Now(), "consequtively")
+	defer utils.TimeTrack(time.Now(), "consequtively")
 	sum := 0
 	for v := range data {
 		sum += v
@@ -27,7 +28,7 @@ func consequtively(data []int) {
 }
 
 func inParal(data []int) {
-	defer TimeTrack(time.Now(), "in paral")
+	defer utils.TimeTrack(time.Now(), "in paral")
 	l := len(data)
 
 	ch := make(chan int, 3)
@@ -58,9 +59,4 @@ func inParal(data []int) {
 		sum += v
 	}
 	fmt.Println(sum)
-}
-
-func TimeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	fmt.Printf("%s took %s\n", name, elapsed)
 }

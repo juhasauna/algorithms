@@ -3,3 +3,8 @@
     - [x] Kolman, Discrete Mathematical Structures algorithms
 - [x] Move other random algorithms here if there are any
 - [] Learn how to run Go debugger.
+- [] kolman
+- [] Rosen - Discrete Mathematics and Its Applications
+- [] MIT - Math for CS
+- [] Algorithms and data structures
+- [] CS-C2160 - Thery of Computation.

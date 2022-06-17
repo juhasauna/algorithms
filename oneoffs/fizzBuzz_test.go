@@ -1,10 +1,10 @@
-package fizzBuzz
+package oneoffs
 
 import (
 	"testing"
 )
 
-func Test(t *testing.T) {
+func Test_fizzBuzz(t *testing.T) {
 	tests := []struct {
 		name string
 		do   bool

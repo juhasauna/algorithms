@@ -6,55 +6,75 @@ import (
 	"testing"
 )
 
-func Test(t *testing.T) {
+func Test_appendixC(t *testing.T) {
+	// time.Sleep(2 * time.Second)
 	tests := []struct {
 		name string
-		f    func(string, *testing.T)
-		do   bool
+		f    func(*testing.T)
 	}{
-		{"intUnion", intUnionTest, false},
-		{"intIntersection", intIntersectionTest, false},
-		{"intDifference", intDifferenceTest, false},
-		{"appC_C01_ex4", appC_C01_ex4Test, false},
-		{"greatesCommonDivisor", greatesCommonDivisorTest, false},
-		{"leastCommonMult", leastCommonMultTest, false},
-		{"doTruthTable", doTruthTableTest, false},
-		{"equivalent", equivalentTest, false},
-		{"getlogicalExpressionTypeTest", getlogicalExpressionTypeTest, false},
-		{"permutations", permutationsTest, false},
-		{"permutationsUpToTest", permutationsUpToTest, false},
-		{"combinationsTest", combinationsTest, false},
-		{"combinationsUpToTest", combinationsTest, false},
-		{"fibonacciUpTo", fibonacciUpToTest, false},
-		{"fibonacciIterative", fibonacciIterativeTest, false},
-		{"isReflexive", isReflexiveTest, true},
+		// {"appC_C01_ex4", appC_C01_ex4Test},
+		// {"combinationsTest", combinationsTest},
+		// {"combinationsUpToTest", combinationsTest},
+		// {"doTruthTable", doTruthTableTest},
+		// {"equivalent", equivalentTest},
+		// {"fibonacciIterative", fibonacciIterativeTest},
+		// {"fibonacciUpTo", fibonacciUpToTest},
+		// {"getlogicalExpressionTypeTest", getlogicalExpressionTypeTest},
+		// {"greatesCommonDivisor", greatesCommonDivisorTest},
+		// {"intDifference", intDifferenceTest},
+		// {"intIntersection", intIntersectionTest},
+		// {"intUnion", intUnionTest},
+		// {"leastCommonMult", leastCommonMultTest},
+		// {"permutations", permutationsTest},
+		// {"permutationsUpToTest", permutationsUpToTest},
+		{"transpose", transposeTest},
 	}
 	for _, tt := range tests {
-		if tt.do {
-			tt.f(tt.name, t)
+		t.Run(tt.name, tt.f)
+	}
+}
+
+func transposeTest(t *testing.T) {
+	tests := []struct {
+		matrix [][]int
+		expect [][]int
+	}{
+		{[][]int{
+			{1, 2, 3},
+			{1, 2, 3},
+			{1, 2, 3},
+		}, [][]int{
+			{1, 1, 1},
+			{2, 2, 2},
+			{3, 3, 3},
+		}},
+		{[][]int{
+			{1, 2, 3, 44},
+			{1, 2, 33, 4},
+		}, [][]int{
+			{1, 1},
+			{2, 2},
+			{3, 33},
+			{44, 4},
+		}},
+		{[][]int{
+			{1, 1},
+			{2, 2},
+			{3, 33},
+			{44, 4},
+		}, [][]int{
+			{1, 2, 3, 44},
+			{1, 2, 33, 4},
+		},
+		}}
+	for i, tt := range tests {
+		got := transpose(tt.matrix)
+		if !reflect.DeepEqual(tt.expect, got) {
+			t.Errorf("FAIL %d: expected: %v, got: %v", i, tt.expect, got)
 		}
 	}
 }
 
-func isReflexiveTest(name string, t *testing.T) {
-	tests := []struct {
-		relation []relation
-		expect   bool
-	}{
-		{[]relation{{"a", "b"}}, false},
-		{[]relation{{"a", "b"}, {"b", "a"}}, true},
-		{[]relation{{"a", "b"}, {"b", "a"}, {"c", "a"}}, false},
-		{[]relation{{"a", "b"}, {"b", "a"}, {"c", "a"}, {"a", "c"}, {"a", "a"}}, true},
-	}
-	for i, tt := range tests {
-		got := isReflexive(tt.relation)
-		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("%s fail with inputs %v, expected %t; got %v", name, tt.relation, tt.expect, got)
-		} else {
-			fmt.Printf("SUCCESS: %s %d\n", name, i)
-		}
-	}
-}
 func fibonacciIterativeTest(name string, t *testing.T) {
 	tests := []struct {
 		n      int
@@ -223,7 +243,7 @@ func intIntersectionTest(name string, t *testing.T) {
 		}
 	}
 }
-func intDifferenceTest(name string, t *testing.T) {
+func intDifferenceTest(t *testing.T) {
 	tests := []struct {
 		a      []int
 		b      []int
@@ -236,9 +256,9 @@ func intDifferenceTest(name string, t *testing.T) {
 	for i, tt := range tests {
 		got := intDifference(tt.a, tt.b)
 		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.a, tt.b, tt.expect, got)
+			t.Errorf("\tfail with inputs %v %v, expected %v; got %v", tt.a, tt.b, tt.expect, got)
 		} else {
-			fmt.Printf("SUCCESS: %s %d\n", name, i)
+			fmt.Printf("\tSUCCESS: %d\n", i)
 		}
 	}
 }
@@ -262,22 +282,27 @@ func appC_C01_ex4Test(name string, t *testing.T) {
 		}
 	}
 }
-func greatesCommonDivisorTest(name string, t *testing.T) {
+func greatesCommonDivisorTest(t *testing.T) {
 	tests := []struct {
 		a      int
 		b      int
 		expect int
 	}{
 		{1, 1, 1},
+		{12, 30, 6},
+		{150, 70, 10},
+		{32, 27, 1},
 		{190, 34, 2},
+		{17, 95, 1},
+		{273, 98, 7},
 		{540, 504, 36},
 	}
 	for i, tt := range tests {
 		got := greatestCommonDivisor(tt.a, tt.b)
 		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("%s fail with inputs %d, %d, expected %v; got %v", name, tt.a, tt.b, tt.expect, got)
+			t.Errorf("FAIL: inputs %d, %d, expected %v; got %v", tt.a, tt.b, tt.expect, got)
 		} else {
-			fmt.Printf("SUCCESS: %s %d\n", name, i)
+			fmt.Printf("\tSUCCESS: %d, inputs (%d,\t%d),\tgot %v\n", i, tt.a, tt.b, got)
 		}
 	}
 }

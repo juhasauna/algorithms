@@ -1,4 +1,4 @@
-package fizzBuzz
+package oneoffs
 
 import (
 	"fmt"

@@ -245,21 +245,36 @@ func crossProduct(m, n int) []point {
 	return result
 }
 
-type relation struct {
-	from string
-	to   string
-}
-
-func isReflexive(r []relation) bool {
-	count := 0
-	for _, from := range r {
-		for _, to := range r {
-			if from.from == to.to {
-				count++
-				break
+func transpose(m [][]int) [][]int {
+	result := [][]int{}
+	rLen := len(m)
+	cLen := len(m[0])
+	r, c := 0, 0
+	resRow := []int{}
+	if rLen < cLen {
+		for r < cLen {
+			for c < rLen {
+				cc := c % cLen
+				resRow = append(resRow, m[cc][r])
+				c++
 			}
+			c = 0
+			result = append(result, resRow)
+			resRow = []int{}
+			r++
+		}
+	} else {
+		for r < cLen {
+			rr := r % rLen
+			for c < rLen {
+				resRow = append(resRow, m[c][rr])
+				c++
+			}
+			c = 0
+			result = append(result, resRow)
+			resRow = []int{}
+			r++
 		}
 	}
-	result := count == len(r)
 	return result
 }
