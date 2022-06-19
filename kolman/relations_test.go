@@ -7,9 +7,6 @@ import (
 	"testing"
 )
 
-var testRelationsData relationsTestData
-var testBoolMatrixData booleanMatrixTestData
-
 func Test_relations(t *testing.T) {
 	initTestData()
 
@@ -17,20 +14,21 @@ func Test_relations(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
+		// {"boolMatrix_transitiveClosure", boolMatrix_transitiveClosureTest},
 		// {"booleanMatrix_product", booleanMatrix_productTest},
 		// {"relations_toMatrix", relations_toMatrixTest},
 		// {"relations_isTransitive", relations_isTransitiveTest},
 		// {"set_cartesianProduct", set_cartesianProductTest},
-		// {"relations_isSymmetric", relations_isSymmetricTest},
+		{"relations_isSymmetric", relations_isSymmetricTest},
 		// {"relations_isReflexive", relations_isReflexiveTest},
 		// {"relations_range_", relations_range_Test},
 		// {"newRelations", newRelationsTest},
 		// {"isReflexive", isReflexiveTest},
 		// {"isSymmetricMatrix", isSymmetricMatrixTest},
-		// {"newRelationsFromMatrix", newRelationsFromMatrixTest},
 		// {"booleanMatrix_toRelations", booleanMatrix_toRelationsTest},
+		// {"booleanMatrix_isPoset", booleanMatrix_isPosetTest},
 		// {"boolMatrix_isEquivalenceRelation", boolMatrix_isEquivalenceRelationTest},
-		{"checkExercises", checkExercises},
+		// {"checkPropertyExercises", checkPropertyExercises},
 		// {"integerRelations", integerRelationsTest},
 		// {"boolMatrixOperations", boolMatrixOperationsTest},
 	}
@@ -59,24 +57,7 @@ func relations_isTransitiveTest(t *testing.T) {
 		}
 	}
 }
-func relations_isTransitiveTest_old(t *testing.T) {
-	tests := []struct {
-		relations relations
-		expect    bool
-	}{
-		{testRelationsData.trans_sym_3, true},
-		{testRelationsData.cp04_04[2], true},
-		// {testRelationsData.cp04_04[8], false},
-	}
-	for i, tt := range tests {
-		got := tt.relations.isTransitive_old()
-		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("FAIL %d: with inputs %v, expected %t; got %v\n", i, tt.relations, tt.expect, got)
-		} else {
-			fmt.Printf("SUCCESS %d\n", i)
-		}
-	}
-}
+
 func isSymmetricMatrixTest(t *testing.T) {
 	tests := []struct {
 		matrix [][]int
@@ -119,41 +100,41 @@ func isReflexiveTest(t *testing.T) {
 	}
 }
 
+func booleanMatrix_isPosetTest(t *testing.T) {
+	tests := []struct {
+		matrix boolMatrix
+		expect bool
+	}{
+		{boolMatrixData.data["cp06.1_ex11"], true},
+	}
+	for i, tt := range tests {
+		got := tt.matrix.isPoset()
+		if !reflect.DeepEqual(got, tt.expect) {
+			t.Errorf("FAIL %d: with inputs %v, expected %t; got %t", i, tt.matrix, tt.expect, got)
+		}
+	}
+}
 func booleanMatrix_productTest(t *testing.T) {
 	tests := []struct {
 		matrix boolMatrix
 		right  boolMatrix
 		expect boolMatrix
 	}{
-		// {boolMatrix{
-		// 	{0, 0},
-		// 	{0, 1},
-		// }, nil, boolMatrix{
-		// 	{0, 0},
-		// 	{0, 1}},
-		// },
-		// {boolMatrix{
-		// 	{0, 0},
-		// 	{1, 1},
-		// }, nil, boolMatrix{
-		// 	{0, 0},
-		// 	{1, 1}},
-		// },
 		{boolMatrix{
-			{1, 1, 0},
-			{0, 1, 0},
-			{1, 1, 0},
-			{0, 0, 1},
-		}, boolMatrix{
-			{1, 0, 0, 0},
-			{0, 1, 1, 0},
-			{1, 0, 1, 1},
-		}, boolMatrix{
-			{1, 1, 1, 0},
-			{0, 1, 1, 0},
-			{1, 1, 1, 0},
-			{1, 0, 1, 1},
-		}},
+			{0, 0},
+			{0, 1},
+		}, nil, boolMatrix{
+			{0, 0},
+			{0, 1}},
+		},
+		{boolMatrix{
+			{0, 0},
+			{1, 1},
+		}, nil, boolMatrix{
+			{0, 0},
+			{1, 1}},
+		},
+		{boolMatrixData.data["cp01.5_ex13_A"], boolMatrixData.data["cp01.5_ex13_B"], boolMatrixData.data["cp01.5_ex13_product"]},
 	}
 	for i, tt := range tests {
 		right := tt.right
@@ -217,6 +198,7 @@ func relations_isSymmetricTest(t *testing.T) {
 	}{
 		{newRelations([]relation{{"a", "b"}, {"c", "d"}}), false},
 		{newRelations([]relation{{"a", "b"}, {"b", "a"}, {"c", "d"}, {"d", "c"}, {"a", "a"}}), true},
+		{boolMatrixData.data["lessThan4x4"].toRelations(), false},
 	}
 	for i, tt := range tests {
 		got := tt.relations.isSymmetric()
@@ -256,12 +238,21 @@ func newRelationsTest(t *testing.T) {
 	}
 }
 func boolMatrix_isEquivalenceRelationTest(t *testing.T) {
+	cp04_04_matrix := func(key int) boolMatrix {
+		x, ok := testRelationsData.cp04_05[key]
+		if !ok {
+			log.Fatalf("key: %d doesn't exists in map", key)
+		}
+		return x.toMatrix()
+	}
 	tests := []struct {
 		bm     boolMatrix
 		expect bool
 	}{
 		{testRelationsData.equivalence_4.toMatrix(), true},
-		{testBoolMatrixData.test1, false},
+		{boolMatrixData.test1, false},
+		{cp04_04_matrix(5), false},
+		{cp04_04_matrix(7), false},
 	}
 	for i, tt := range tests {
 		got := tt.bm.isEquivalenceRelation()
@@ -274,7 +265,7 @@ func booleanMatrix_toRelationsTest(t *testing.T) {
 	tests := []struct {
 		bm boolMatrix
 	}{
-		{testBoolMatrixData.test1},
+		{boolMatrixData.test1},
 	}
 	for _, tt := range tests {
 		got := tt.bm.toRelations()
@@ -282,125 +273,7 @@ func booleanMatrix_toRelationsTest(t *testing.T) {
 	}
 }
 
-type booleanMatrixTestData struct {
-	test1      boolMatrix
-	diagonal_3 boolMatrix
-	cp04_04    map[int]boolMatrix
-}
-
-func initBooleanMatrixTestData() {
-	testBoolMatrixData = booleanMatrixTestData{
-		test1: boolMatrix{
-			{1, 1, 1, 0},
-			{0, 1, 1, 0},
-			{1, 1, 1, 0},
-			{1, 0, 1, 1},
-		},
-		diagonal_3: boolMatrix{
-			{1, 0, 0},
-			{0, 1, 0},
-			{0, 0, 1},
-		},
-	}
-	testBoolMatrixData.cp04_04 = make(map[int]boolMatrix)
-	testBoolMatrixData.cp04_04[11] = boolMatrix{
-		{0, 1, 0, 1},
-		{1, 0, 1, 1},
-		{0, 1, 0, 0},
-		{1, 1, 0, 0},
-	}
-	testBoolMatrixData.cp04_04[12] = boolMatrix{
-		{1, 1, 0, 0},
-		{1, 1, 0, 0},
-		{0, 0, 1, 0},
-		{0, 0, 0, 1},
-	}
-	testBoolMatrixData.cp04_04[13] = boolMatrix{
-		{1, 1, 1, 1},
-		{1, 1, 1, 1},
-		{0, 1, 1, 1},
-		{0, 0, 1, 1},
-	}
-	testBoolMatrixData.cp04_04[3701] = boolMatrix{ // Ex.37 a) reflexive and symmetric, but not transitive.
-		{1, 1, 0, 0},
-		{1, 1, 1, 0},
-		{0, 1, 1, 0},
-		{0, 0, 0, 1},
-	}
-	testBoolMatrixData.cp04_04[3702] = boolMatrix{ // Ex.37 b) reflexive and transitive, but not symmetric.
-		{1, 1, 1, 0},
-		{0, 1, 0, 0},
-		{0, 1, 1, 0},
-		{0, 0, 0, 1},
-	}
-	testBoolMatrixData.cp04_04[3801] = boolMatrix{ // Ex.38 a) irreflexive and transitive, but not symmetric.
-		{0, 1, 1, 0},
-		{0, 0, 0, 0},
-		{0, 1, 0, 0},
-		{0, 0, 0, 0},
-	}
-	testBoolMatrixData.cp04_04[3802] = boolMatrix{ // Ex.38 b) antisymmetric and reflexive, but not transitive.
-		{1, 0, 0, 0},
-		{1, 1, 0, 0},
-		{0, 1, 1, 0},
-		{0, 0, 0, 1},
-	}
-	testBoolMatrixData.cp04_04[3901] = boolMatrix{ // Ex.39 a) transitive, reflexive, and symmetric.
-		{1, 1, 0, 0},
-		{1, 1, 0, 0},
-		{0, 0, 1, 0},
-		{0, 0, 0, 1},
-	}
-	testBoolMatrixData.cp04_04[3902] = boolMatrix{ // Ex.39 b) asymmetric and transitive.
-		{0, 1, 0, 0},
-		{0, 0, 0, 0},
-		{0, 0, 0, 0},
-		{0, 0, 0, 0},
-	}
-
-}
-func initTestData() {
-	initBooleanMatrixTestData()
-	initRelationsTestData()
-}
-
-type relationsTestData struct {
-	test1         relations
-	trans_sym_3   relations
-	equivalence_4 relations
-	cp04_04       map[int]relations
-	integerFuncs  map[string]func(int, int) bool
-}
-
-func initRelationsTestData() {
-	setA := newSet("1", "2", "3", "4")
-	testRelationsData = relationsTestData{
-		test1:         newRelations([]relation{{"a", "a"}, {"a", "b"}, {"c", "c"}, {"c", "d"}}),
-		trans_sym_3:   newRelations([]relation{{"a", "a"}, {"a", "b"}, {"a", "c"}, {"b", "c"}, {"c", "c"}}),
-		equivalence_4: newRelations([]relation{{"1", "1"}, {"1", "2"}, {"2", "1"}, {"2", "2"}, {"3", "4"}, {"4", "3"}, {"3", "3"}, {"4", "4"}}),
-	}
-	testRelationsData.cp04_04 = make(map[int]relations)
-	testRelationsData.integerFuncs = make(map[string]func(int, int) bool)
-	testRelationsData.cp04_04[1] = newRelations([]relation{{"1", "1"}, {"1", "2"}, {"2", "1"}, {"2", "2"}, {"3", "3"}, {"3", "4"}, {"4", "3"}, {"4", "4"}})
-	testRelationsData.cp04_04[2] = newRelations([]relation{{"1", "2"}, {"1", "3"}, {"1", "4"}, {"2", "3"}, {"2", "4"}, {"3", "4"}})
-	testRelationsData.cp04_04[6] = setA.cartesianSquare()
-	testRelationsData.cp04_04[8] = newRelations([]relation{{"1", "3"}, {"4", "2"}, {"2", "4"}, {"3", "1"}, {"2", "2"}})
-	testRelationsData.cp04_04[108] = newRelations([]relation{{"4", "2"}, {"2", "4"}})
-	testRelationsData.cp04_04[10] = newRelations([]relation{{"1", "2"}, {"1", "3"}, {"1", "4"}, {"5", "2"}, {"5", "3"}, {"5", "4"}})
-	testRelationsData.cp04_04[11] = testBoolMatrixData.cp04_04[11].toRelations()
-	testRelationsData.cp04_04[12] = testBoolMatrixData.cp04_04[12].toRelations()
-	testRelationsData.cp04_04[13] = testBoolMatrixData.cp04_04[13].toRelations()
-	testRelationsData.cp04_04[3701] = testBoolMatrixData.cp04_04[3701].toRelations()
-	testRelationsData.cp04_04[3702] = testBoolMatrixData.cp04_04[3702].toRelations()
-	testRelationsData.cp04_04[3801] = testBoolMatrixData.cp04_04[3801].toRelations()
-	testRelationsData.cp04_04[3802] = testBoolMatrixData.cp04_04[3802].toRelations()
-	testRelationsData.cp04_04[3901] = testBoolMatrixData.cp04_04[3901].toRelations()
-	testRelationsData.cp04_04[3902] = testBoolMatrixData.cp04_04[3902].toRelations()
-	testRelationsData.integerFuncs["cp04_04_13"] = func(from, to int) bool { return from <= (to + 1) }
-
-}
-
-func checkExercises(t *testing.T) {
+func checkPropertyExercises(t *testing.T) {
 	tests := []struct {
 		key        int
 		properties properties
@@ -481,15 +354,15 @@ func boolMatrixOperationsTest(t *testing.T) {
 		transpose    boolMatrix
 		union        boolMatrix
 	}{
-		{in: testBoolMatrixData.diagonal_3,
+		{in: boolMatrixData.data["diag3"],
 			complement:   boolMatrix{{0, 1, 1}, {1, 0, 1}, {1, 1, 0}},
 			intersection: boolMatrix{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
 			inverse:      nil,
-			product:      testBoolMatrixData.diagonal_3,
-			transpose:    testBoolMatrixData.diagonal_3,
-			union:        testBoolMatrixData.diagonal_3,
+			product:      boolMatrixData.data["diag3"],
+			transpose:    boolMatrixData.data["diag3"],
+			union:        boolMatrixData.data["diag3"],
 		},
-		{in: testBoolMatrixData.diagonal_3,
+		{in: boolMatrixData.data["diag3"],
 			complement:   nil,
 			intersection: nil,
 			inverse:      nil,
@@ -517,6 +390,22 @@ func boolMatrixOperationsTest(t *testing.T) {
 			if !reflect.DeepEqual(tt.product, got) {
 				t.Errorf("FAIL intersection, input: %v\n, expect: %v,\n got: %v\n", tt.in, tt.intersection, got)
 			}
+		}
+	}
+}
+
+func boolMatrix_transitiveClosureTest(t *testing.T) {
+	tests := []struct {
+		in     boolMatrix
+		expect boolMatrix
+	}{
+		{boolMatrixData.get("cp04.8_examp02"), boolMatrixData.get("cp04.8_examp02_answer")},
+		{boolMatrixData.get("cp04.8_examp03"), boolMatrixData.get("cp04.8_examp03_answer")},
+	}
+	for _, tt := range tests {
+		got := tt.in.transitiveClosure(0)
+		if !reflect.DeepEqual(tt.expect, got) {
+			t.Errorf("FAIL: expected: %v, got: %v", tt.expect, got)
 		}
 	}
 }

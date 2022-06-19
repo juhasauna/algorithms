@@ -1,7 +1,11 @@
 // p. 460
 package kolman
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"sort"
+)
 
 var ut utils
 
@@ -274,6 +278,66 @@ func transpose(m [][]int) [][]int {
 			result = append(result, resRow)
 			resRow = []int{}
 			r++
+		}
+	}
+	return result
+}
+
+type permutationFunc struct {
+	f    map[int]int
+	keys []int
+}
+
+func (x *permutationFunc) disjointCycleProduct() (result [][]int) {
+	// App. C Cp.5: 3. Write a program that writes a given permutation as a product of disjoint cycles.
+	keys := []int{}
+	for key := range x.f {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	x.keys = keys
+	for len(x.keys) != 0 {
+		key := x.keys[0]
+		cycle := x.disjointCycle([]int{}, key)
+		x.removeKeys(cycle)
+		result = append([][]int{cycle}, result...)
+	}
+	return result
+}
+
+func (x *permutationFunc) disjointCycle(cycle_ []int, v int) (cycle []int) {
+	cycle = append(cycle_, v)
+	cycleValue, ok := x.f[v]
+	if !ok {
+		log.Fatalf("invalid permutationFunc, key: %d", v)
+	}
+	if cycleValue == cycle[0] {
+		return cycle
+	}
+	return x.disjointCycle(cycle, cycleValue)
+}
+
+func (x *permutationFunc) removeKeys(cycle []int) {
+	for _, v := range cycle {
+		for i := len(x.keys) - 1; i >= 0; i-- {
+			if v == x.keys[i] {
+				x.keys = append(x.keys[:i], x.keys[i+1:]...)
+			}
+		}
+	}
+}
+
+func (x *permutationFunc) toTranspositionProduct() (result [][]int) {
+	cycles := x.disjointCycleProduct()
+	// App. C Cp.5: 4. Write a program that writes a given permutation as a product of transpositions.
+	// A cycle of length 2 is called a transposition.
+	// Every cycle can be written as a product of transpositions.
+	// Every permutation of a finite set with at least two elements can be written as a product of transpositions. The transpositions need not be disjoint.
+	for _, cycle := range cycles {
+		for j := len(cycle) - 1; j > 0; j-- {
+			result = append(result, []int{cycle[0], cycle[j]})
 		}
 	}
 	return result

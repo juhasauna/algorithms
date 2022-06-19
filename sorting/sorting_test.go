@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -15,15 +17,16 @@ func Test_sorting(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
-		// {"binarySearch", binarySearchTest},
-		// {"insertionSort", insertionSortTest},
-		// {"selectionSort", selectionSortTest},
-		// {"merge", mergeTest},
+		// {"separateIntThousands", separateIntThousandsTest},
+		{"binarySearch", binarySearchTest},
+		{"insertionSort", insertionSortTest},
+		{"selectionSort", selectionSortTest},
 		{"mergeSort", mergeSortTest},
+		{"bubble", bubbleTest},
+		// {"merge", mergeTest},
 		// {"mergeSortInplace", mergeSortInplaceTest},
-		{"mergeSortPointer", mergeSortPointerTest},
+		// {"mergeSortPointer", mergeSortPointerTest},
 		// {"mergePointer", mergePointerTest},
-		// {"bubble", bubbleTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -131,19 +134,19 @@ func bubbleTest(t *testing.T) {
 		values []int
 		expect []int
 	}{
-		{td.test5, td.getSorted(td.test5)},
+		// {td.test5, td.getSorted(td.test5)},
 		// {td.test10, td.getSorted(td.test10)},
-		// {td.testDdata4813, td.getSorted(td.testDdata4813)},
+		{td.testDdata4813, td.getSorted(td.testDdata4813)},
 	}
 	for i, tt := range tests {
 		valuesCopy := make([]int, len(tt.values))
 		copy(valuesCopy, tt.values)
 		x := sorter{values: valuesCopy}
-		fmt.Println(x.values, td.test5)
 		x.bubble()
-		fmt.Println(x.values, td.test5)
 		if !reflect.DeepEqual(x.values, tt.expect) {
-			t.Errorf("FAIL %d: inputs %v, expected %v, got %v", i, tt.values, tt.expect, x.values)
+			t.Errorf("FAIL %d: iters: %s, inputs %v, expected %v, got %v", i, x.itersFormat(), tt.values, tt.expect, x.values)
+		} else {
+			fmt.Printf("SUCCESS bubble iters: %s\n", x.itersFormat())
 		}
 	}
 }
@@ -154,13 +157,15 @@ func mergeSortTest(t *testing.T) {
 	}{
 		// {td.test5, td.getSorted(td.test5)},
 		// {td.test10, td.getSorted(td.test10)},
-		// {td.testDdata4813, td.getSorted(td.testDdata4813)},
+		{td.testDdata4813, td.getSorted(td.testDdata4813)},
 	}
 	for i, tt := range tests {
 		x := sorter{values: tt.values}
 		got := x.mergeSort(x.values)
 		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("FAIL %d: inputs %v, expected %v, got %v", i, tt.values, tt.expect, got)
+			t.Errorf("FAIL %d: iters: %s, inputs %v, expected %v, got %v", i, x.itersFormat(), tt.values, tt.expect, got)
+		} else {
+			fmt.Printf("SUCCESS merge iters: %s\n", x.itersFormat())
 		}
 	}
 }
@@ -176,9 +181,36 @@ func selectionSortTest(t *testing.T) {
 		x := sorter{values: tt.values}
 		x.selectionSort()
 		if !reflect.DeepEqual(x.values, tt.expect) {
-			t.Errorf("FAIL %d: inputs %v, expected %v, got %v", i, tt.values, tt.expect, x.values)
+			t.Errorf("FAIL %d: iters: %s, inputs %v, expected %v, got %v", i, x.itersFormat(), tt.values, tt.expect, x.values)
+		} else {
+			fmt.Printf("SUCCESS selection iters: %s\n", x.itersFormat())
 		}
 	}
+}
+func separateIntThousandsTest(t *testing.T) {
+	fmt.Println(separateIntThousands(123456789))
+	fmt.Println(separateIntThousands(12345678))
+	fmt.Println(separateIntThousands(1234567))
+}
+
+func separateIntThousands_my_feeble_attempt(i int) string {
+	slice := strings.Split(strconv.Itoa(i), "")
+	s := ""
+	j := len(slice)
+	prev := j
+	for {
+		j -= 3
+		s = strings.Join(slice[j:prev], "") + " " + s
+		prev = j
+		if prev-3 < 0 {
+			break
+		}
+	}
+	leftOver := len(slice) % 3
+	if leftOver > 0 {
+		s += strings.Join(slice[:leftOver], "")
+	}
+	return s
 }
 func insertionSortTest(t *testing.T) {
 	tests := []struct {
@@ -194,7 +226,9 @@ func insertionSortTest(t *testing.T) {
 		x := sorter{values: tt.values}
 		x.insertionSort()
 		if !reflect.DeepEqual(x.values, tt.expect) {
-			t.Errorf("FAIL %d: inputs %v, expected %v, got %v", i, tt.values, tt.expect, x.values)
+			t.Errorf("FAIL %d: iters: %s, inputs %v, expected %v, got %v", i, x.itersFormat(), tt.values, tt.expect, x.values)
+		} else {
+			fmt.Printf("SUCCESS insertion iters: %s\n", x.itersFormat())
 		}
 	}
 }

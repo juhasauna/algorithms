@@ -27,10 +27,59 @@ func Test_appendixC(t *testing.T) {
 		// {"leastCommonMult", leastCommonMultTest},
 		// {"permutations", permutationsTest},
 		// {"permutationsUpToTest", permutationsUpToTest},
-		{"transpose", transposeTest},
+		// {"permutationFunc_disjointCycleProduct", permutationFunc_disjointCycleProductTest},
+		{"permutationFunc_toTranspositionProductTest", permutationFunc_toTranspositionProductTest},
+		// {"transpose", transposeTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.f)
+	}
+}
+
+func permutationFunc_disjointCycleProductTest(t *testing.T) {
+	x := permutationFunc{}
+	tests := []struct {
+		permutation map[int]int
+		expect      [][]int
+	}{
+		{map[int]int{1: 3, 2: 4, 3: 6, 4: 5, 5: 2, 6: 1, 7: 8, 8: 7}, [][]int{{7, 8}, {2, 4, 5}, {1, 3, 6}}},
+		{map[int]int{1: 2, 2: 4, 3: 5, 4: 7, 5: 6, 6: 3, 7: 1}, [][]int{{3, 5, 6}, {1, 2, 4, 7}}},
+	}
+
+	for _, tt := range tests {
+		x.f = tt.permutation
+		got := x.disjointCycleProduct()
+		if !reflect.DeepEqual(got, tt.expect) {
+			t.Errorf("FAIL: expected: %v, got: %v", tt.expect, got)
+		}
+	}
+}
+func permutationFunc_toTranspositionProductTest(t *testing.T) {
+	// Solution to ex. 4,5 for Cp. 5
+	// App. C Cp.5: 5. Use the program in Exercise 4 as a subroutine in a program that determines whether a given permutation is even or odd.
+
+	x := permutationFunc{}
+	tests := []struct {
+		permutation map[int]int
+		expect      [][]int
+		// even        bool
+	}{
+		{map[int]int{1: 3, 2: 4, 3: 6, 4: 5, 5: 2, 6: 1, 7: 8, 8: 7}, [][]int{{7, 8}, {2, 5}, {2, 4}, {1, 6}, {1, 3}}},
+		{map[int]int{1: 2, 2: 4, 3: 5, 4: 7, 5: 6, 6: 3, 7: 1}, [][]int{{3, 6}, {3, 5}, {1, 7}, {1, 4}, {1, 2}}},
+	}
+
+	for i, tt := range tests {
+		x.f = tt.permutation
+		got := x.toTranspositionProduct()
+		if !reflect.DeepEqual(got, tt.expect) {
+			t.Errorf("FAIL: expected: %v, got: %v", tt.expect, got)
+		} else {
+			parity := "odd"
+			if len(got)%2 == 0 {
+				parity = "even"
+			}
+			fmt.Printf("SUCCESS %d: parity: %s\n", i, parity)
+		}
 	}
 }
 

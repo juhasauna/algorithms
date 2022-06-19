@@ -3,6 +3,7 @@ package sorting
 import (
 	"fmt"
 	"math"
+	"strconv"
 )
 
 type binarySearch struct {
@@ -28,6 +29,11 @@ func (x binarySearch) search(lo, hi, counter int) (bool, int) {
 type sorter struct {
 	values  []int
 	verbose bool
+	iters   int64
+}
+
+func (x *sorter) itersFormat() string {
+	return separateIntThousands(x.iters)
 }
 
 func (x sorter) log(format string, a ...interface{}) {
@@ -39,6 +45,7 @@ func (x sorter) log(format string, a ...interface{}) {
 func (x *sorter) merge(a, b []int) []int {
 	result := []int{}
 	for len(a) > 0 && len(b) > 0 {
+		x.iters++
 		if a[0] < b[0] {
 			result = append(result, a[0])
 			a = a[1:]
@@ -52,6 +59,7 @@ func (x *sorter) merge(a, b []int) []int {
 }
 
 func (x *sorter) mergeSort(values []int) []int {
+	x.iters++
 	l := len(values) / 2
 	a := values[:l]
 	b := values[l:]
@@ -138,6 +146,7 @@ func (x *sorter) insertionSort() {
 		key := x.values[j]
 		i := j - 1
 		for i >= 0 && x.values[i] > key {
+			x.iters++
 			x.values[i+1] = x.values[i]
 			i--
 		}
@@ -148,6 +157,7 @@ func (x *sorter) selectionSort() {
 	for i, v := range x.values {
 		smallestIndex := i
 		for j := i; j < len(x.values); j++ {
+			x.iters++
 			if v > x.values[j] {
 				v = x.values[j]
 				smallestIndex = j
@@ -159,14 +169,39 @@ func (x *sorter) selectionSort() {
 	}
 }
 func (x *sorter) bubble() {
-	// TODO: Analyse the WCRT yourself.
 	for i := 0; i < len(x.values); i++ {
 		for j := len(x.values) - 1; j > i; j-- {
+			x.iters++
 			if x.values[j-1] > x.values[j] {
 				temp := x.values[j-1]
 				x.values[j-1] = x.values[j]
 				x.values[j] = temp
 			}
+		}
+	}
+}
+
+func separateIntThousands(n int64) string {
+	in := strconv.FormatInt(n, 10)
+	numOfDigits := len(in)
+	if n < 0 {
+		numOfDigits-- // First character is the - sign (not a digit)
+	}
+	numOfCommas := (numOfDigits - 1) / 3
+
+	out := make([]byte, len(in)+numOfCommas)
+	if n < 0 {
+		in, out[0] = in[1:], '-'
+	}
+
+	for i, j, k := len(in)-1, len(out)-1, 0; ; i, j = i-1, j-1 {
+		out[j] = in[i]
+		if i == 0 {
+			return string(out)
+		}
+		if k++; k == 3 {
+			j, k = j-1, 0
+			out[j] = ' '
 		}
 	}
 }

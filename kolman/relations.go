@@ -46,26 +46,9 @@ func (x *set) cartesianProduct(y set) relations {
 	}
 	return result
 }
-func (x *set) cartesianProduct_old(y set) set {
-	result := make(set)
-	for i := range *x {
-		for j := range y {
-			result.add(i + keySeparator + j)
-		}
-	}
-	return result
-}
+
 func (x *set) cartesianSquare() relations {
 	return x.cartesianProduct(*x)
-}
-func (x *set) cartesianSquare_old() set {
-	result := make(set)
-	for i := range *x {
-		for j := range *x {
-			result.add(i + keySeparator + j)
-		}
-	}
-	return result
 }
 
 type relations struct {
@@ -211,6 +194,7 @@ func isSymmetricMatrix(m [][]int) bool {
 }
 
 func (x *relations) domain() set {
+	// Not sure if this is always correct. Certainly if e.g. R is subset of A x A, then it's fine.
 	m := make(set)
 	for _, relation := range x.relationSet {
 		m[relation.from] = none
@@ -363,24 +347,6 @@ func (x boolMatrix) product(right boolMatrix) boolMatrix {
 	return result
 }
 
-func (x *relations) isTransitive_old() bool {
-	m := x.toMatrix()
-	for i, row := range m {
-		for j, v := range row {
-			if v == 1 && i != j {
-				jRow := m[j]
-				for jRowIdx, jRowValue := range jRow {
-					if jRowValue == 1 && jRowIdx != j {
-						if m[i][jRowIdx] != 1 {
-							return false
-						}
-					}
-				}
-			}
-		}
-	}
-	return true
-}
 func (x *relations) isTransitive() bool {
 	// From the book: TRANS algorithm
 	m := x.toMatrix()
@@ -388,7 +354,6 @@ func (x *relations) isTransitive() bool {
 		for j, v := range row {
 			if v == 1 && i != j {
 				for k := 0; k < len(m); k++ {
-					// if m[j][k] == 1 && m[i][k] != 1 && (i != k && k != j) {
 					if m[j][k] == 1 && m[i][k] != 1 {
 						return false
 					}
@@ -462,4 +427,51 @@ func integerRelations(from, to int, f func(int, int) bool) relations {
 		}
 	}
 	return newRelations(rels)
+}
+
+// poset AKA partially ordered set
+func (x boolMatrix) isPoset() bool {
+	// Appendix C. Chapter 6 coding ex. 1. Write a subroutine that determines if a relation R represented by its matrix is a partial order.
+	result := x.toRelations().getProperties() == properties{reflexive: 1, antisymmetric: 1, transitive: 1}
+	return result
+}
+
+// Warshall's algorithm
+func (x boolMatrix) transitiveClosure(iter int) boolMatrix {
+	var xk boolMatrix
+	for _, row := range x {
+		xk = append(xk, copySlice(row))
+	}
+	kRowValues := copySlice(x[iter])
+	kColValues := x.getColValues(iter)
+	for i, rowVal := range kRowValues {
+		if rowVal == 0 {
+			continue
+		}
+		for j, colVal := range kColValues {
+			if colVal == 0 {
+				continue
+			}
+			xk[j][i] = 1
+		}
+	}
+	if iter == len(kRowValues)-1 || iter == len(kColValues)-1 {
+		return xk
+	}
+	return xk.transitiveClosure(iter + 1)
+}
+
+func copySlice(src []int) []int {
+	var tempRow []int
+	for _, v := range src {
+		tempRow = append(tempRow, v)
+	}
+	return tempRow
+}
+
+func (x boolMatrix) getColValues(i int) (result []int) {
+	for _, row := range x {
+		result = append(result, row[i])
+	}
+	return result
 }
