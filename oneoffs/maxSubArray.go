@@ -1,6 +1,9 @@
 package oneoffs
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type maxSubArray struct {
 	data    []int
@@ -96,7 +99,6 @@ func (x *maxSubArray) maxCrossing(low, mid, high int) (int, int, int) {
 			highResult = i
 		}
 	}
-	// return low, high, sum
 	return lowResult, highResult, (leftSum + rightSum)
 }
 
@@ -108,4 +110,15 @@ func (x *maxSubArray) getChange() (result []int) {
 		prev = v
 	}
 	return result
+}
+
+func (x *maxSubArray) linearTime() (low, high, profit int) {
+	low = math.MaxInt
+	chg := x.getChange()
+	for i := len(x.data) - 1; i > 0; i-- {
+		if chg[i] < low {
+			low = chg[i]
+		}
+
+	}
 }
