@@ -1,6 +1,7 @@
 package kolman
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"sort"
@@ -16,6 +17,20 @@ type relation struct {
 	to   string
 }
 type set map[string]struct{}
+
+func (x set) getFirst() string {
+	if len(x) == 0 {
+		log.Fatalf("getting items from empty set")
+	}
+	s := []string{}
+	for key := range x {
+		s = append(s, key)
+	}
+	sort.Slice(s, func(i, j int) bool {
+		return s[i] < s[j]
+	})
+	return s[0]
+}
 
 func newSet(keys ...string) set {
 	new := make(set)
@@ -230,6 +245,30 @@ func (x *relations) toMatrix() (result boolMatrix) {
 }
 
 type boolMatrix [][]int
+
+func (x *boolMatrix) rmRow(i int) boolMatrix {
+	x_ := *x
+	fmt.Println(x_)
+	x_ = append(x_[:i], x_[i+1:]...)
+	fmt.Println(x_)
+	return x_
+}
+func (x *boolMatrix) rmCol(j int) {
+	x_ := *x
+	for i, row := range x_ {
+		row = append(row[:j], row[j+1:]...)
+		x_[i] = row
+	}
+	x = &x_
+}
+func (x *boolMatrix) swapRows(a, b int) {
+	x_ := *x
+	for i, v := range x_[a] {
+		temp := x_[b][i]
+		x_[b][i] = v
+		x_[a][i] = temp
+	}
+}
 
 func (x boolMatrix) rows() int {
 	return len(x)

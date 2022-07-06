@@ -189,3 +189,24 @@ func removeRow(r int, m [][]int) [][]int {
 
 	return append(m[:r], m[r+1:]...)
 }
+
+func characteristicFunc(universalSet, subset []int) (result []int) {
+	for _, v := range subset {
+		if sliceIncludes(universalSet, v) {
+			result = append(result, 1)
+		} else {
+			result = append(result, 0)
+
+		}
+	}
+	return result
+}
+
+func sliceIncludes(s []int, element int) bool {
+	for _, v := range s {
+		if v == element {
+			return true
+		}
+	}
+	return false
+}

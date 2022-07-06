@@ -36,12 +36,19 @@ func maxSubArray_findTest(t *testing.T) {
 		} else {
 			fmt.Printf("SUCCESS divAndConq: iters: %d, purchase/sell price: %d/%d, profit %d\n", doer.iters, tt.data[gotLow], tt.data[gotHigh], profit)
 		}
-
+		doer.iters = 0
 		gotLow, gotHigh, profit = doer.brute()
 		if gotLow != tt.wantLow || gotHigh != tt.wantHigh {
 			t.Errorf("FAIL brute: iters: %d, gotLow/want: %d/%d, gotHigh/want: %d/%d", doer.iters, gotLow, tt.wantLow, gotHigh, tt.wantHigh)
 		} else {
 			fmt.Printf("SUCCESS brute: iters: %d, purchase/sell price: %d/%d, profit %d\n", doer.iters, tt.data[gotLow], tt.data[gotHigh], profit)
+		}
+		doer.iters = 0
+		gotLow, gotHigh, profit = doer.linearTime()
+		if gotLow != tt.wantLow || gotHigh != tt.wantHigh {
+			t.Errorf("FAIL linearTime: iters: %d, gotLow/want: %d/%d, gotHigh/want: %d/%d", doer.iters, gotLow, tt.wantLow, gotHigh, tt.wantHigh)
+		} else {
+			fmt.Printf("SUCCESS linearTime: iters: %d, purchase/sell price: %d/%d, profit %d\n", doer.iters, tt.data[gotLow], tt.data[gotHigh], profit)
 		}
 	}
 }

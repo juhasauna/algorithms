@@ -20,7 +20,7 @@ func Test_appendixC(t *testing.T) {
 		// {"fibonacciIterative", fibonacciIterativeTest},
 		// {"fibonacciUpTo", fibonacciUpToTest},
 		// {"getlogicalExpressionTypeTest", getlogicalExpressionTypeTest},
-		// {"greatesCommonDivisor", greatesCommonDivisorTest},
+		{"greatesCommonDivisor", greatesCommonDivisorTest},
 		// {"intDifference", intDifferenceTest},
 		// {"intIntersection", intIntersectionTest},
 		// {"intUnion", intUnionTest},
@@ -28,8 +28,7 @@ func Test_appendixC(t *testing.T) {
 		// {"permutations", permutationsTest},
 		// {"permutationsUpToTest", permutationsUpToTest},
 		// {"permutationFunc_disjointCycleProduct", permutationFunc_disjointCycleProductTest},
-		{"permutationFunc_toTranspositionProductTest", permutationFunc_toTranspositionProductTest},
-		// {"transpose", transposeTest},
+		// {"permutationFunc_toTranspositionProductTest", permutationFunc_toTranspositionProductTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.f)
@@ -44,6 +43,7 @@ func permutationFunc_disjointCycleProductTest(t *testing.T) {
 	}{
 		{map[int]int{1: 3, 2: 4, 3: 6, 4: 5, 5: 2, 6: 1, 7: 8, 8: 7}, [][]int{{7, 8}, {2, 4, 5}, {1, 3, 6}}},
 		{map[int]int{1: 2, 2: 4, 3: 5, 4: 7, 5: 6, 6: 3, 7: 1}, [][]int{{3, 5, 6}, {1, 2, 4, 7}}},
+		{map[int]int{1: 9, 2: 7, 3: 3, 4: 6, 5: 4, 6: 2, 7: 1, 8: 5, 9: 8}, [][]int{{3}, {1, 9, 8, 5, 4, 6, 2, 7}}},
 	}
 
 	for _, tt := range tests {
@@ -64,8 +64,9 @@ func permutationFunc_toTranspositionProductTest(t *testing.T) {
 		expect      [][]int
 		// even        bool
 	}{
-		{map[int]int{1: 3, 2: 4, 3: 6, 4: 5, 5: 2, 6: 1, 7: 8, 8: 7}, [][]int{{7, 8}, {2, 5}, {2, 4}, {1, 6}, {1, 3}}},
-		{map[int]int{1: 2, 2: 4, 3: 5, 4: 7, 5: 6, 6: 3, 7: 1}, [][]int{{3, 6}, {3, 5}, {1, 7}, {1, 4}, {1, 2}}},
+		// {map[int]int{1: 3, 2: 4, 3: 6, 4: 5, 5: 2, 6: 1, 7: 8, 8: 7}, [][]int{{7, 8}, {2, 5}, {2, 4}, {1, 6}, {1, 3}}},
+		// {map[int]int{1: 2, 2: 4, 3: 5, 4: 7, 5: 6, 6: 3, 7: 1}, [][]int{{3, 6}, {3, 5}, {1, 7}, {1, 4}, {1, 2}}},
+		{map[int]int{1: 9, 2: 7, 3: 3, 4: 6, 5: 4, 6: 2, 7: 1, 8: 5, 9: 8}, [][]int{{1, 7}, {1, 2}, {1, 6}, {1, 4}, {1, 5}, {1, 8}, {1, 9}}},
 	}
 
 	for i, tt := range tests {
@@ -79,47 +80,6 @@ func permutationFunc_toTranspositionProductTest(t *testing.T) {
 				parity = "even"
 			}
 			fmt.Printf("SUCCESS %d: parity: %s\n", i, parity)
-		}
-	}
-}
-
-func transposeTest(t *testing.T) {
-	tests := []struct {
-		matrix [][]int
-		expect [][]int
-	}{
-		{[][]int{
-			{1, 2, 3},
-			{1, 2, 3},
-			{1, 2, 3},
-		}, [][]int{
-			{1, 1, 1},
-			{2, 2, 2},
-			{3, 3, 3},
-		}},
-		{[][]int{
-			{1, 2, 3, 44},
-			{1, 2, 33, 4},
-		}, [][]int{
-			{1, 1},
-			{2, 2},
-			{3, 33},
-			{44, 4},
-		}},
-		{[][]int{
-			{1, 1},
-			{2, 2},
-			{3, 33},
-			{44, 4},
-		}, [][]int{
-			{1, 2, 3, 44},
-			{1, 2, 33, 4},
-		},
-		}}
-	for i, tt := range tests {
-		got := transpose(tt.matrix)
-		if !reflect.DeepEqual(tt.expect, got) {
-			t.Errorf("FAIL %d: expected: %v, got: %v", i, tt.expect, got)
 		}
 	}
 }
@@ -348,8 +308,9 @@ func greatesCommonDivisorTest(t *testing.T) {
 	}
 	for i, tt := range tests {
 		got := greatestCommonDivisor(tt.a, tt.b)
-		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("FAIL: inputs %d, %d, expected %v; got %v", tt.a, tt.b, tt.expect, got)
+		got2 := euclideanAlgorithm(tt.a, tt.b)
+		if !(got == tt.expect && got2 == tt.expect) {
+			t.Errorf("FAIL: inputs %d, %d, expected %d; got %d; got2 %d", tt.a, tt.b, tt.expect, got, got2)
 		} else {
 			fmt.Printf("\tSUCCESS: %d, inputs (%d,\t%d),\tgot %v\n", i, tt.a, tt.b, got)
 		}

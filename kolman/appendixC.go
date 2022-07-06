@@ -74,6 +74,19 @@ func greatestCommonDivisor(a, b int) int {
 	}
 	return a
 }
+func euclideanAlgorithm(a, b int) int {
+	if b > a {
+		temp := b
+		b = a
+		a = temp
+	}
+	for b != 0 {
+		temp := a % b
+		a = b
+		b = temp
+	}
+	return a
+}
 func leastCommonMult(a, b int) int {
 	gcd := greatestCommonDivisor(a, b)
 	lcm := a * b / gcd
@@ -244,40 +257,6 @@ func crossProduct(m, n int) []point {
 	for i := 1; i <= m; i++ {
 		for j := 1; j <= n; j++ {
 			result = append(result, point{i, j})
-		}
-	}
-	return result
-}
-
-func transpose(m [][]int) [][]int {
-	result := [][]int{}
-	rLen := len(m)
-	cLen := len(m[0])
-	r, c := 0, 0
-	resRow := []int{}
-	if rLen < cLen {
-		for r < cLen {
-			for c < rLen {
-				cc := c % cLen
-				resRow = append(resRow, m[cc][r])
-				c++
-			}
-			c = 0
-			result = append(result, resRow)
-			resRow = []int{}
-			r++
-		}
-	} else {
-		for r < cLen {
-			rr := r % rLen
-			for c < rLen {
-				resRow = append(resRow, m[c][rr])
-				c++
-			}
-			c = 0
-			result = append(result, resRow)
-			resRow = []int{}
-			r++
 		}
 	}
 	return result

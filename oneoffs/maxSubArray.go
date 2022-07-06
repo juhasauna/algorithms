@@ -2,7 +2,6 @@ package oneoffs
 
 import (
 	"fmt"
-	"math"
 )
 
 type maxSubArray struct {
@@ -112,13 +111,26 @@ func (x *maxSubArray) getChange() (result []int) {
 	return result
 }
 
-func (x *maxSubArray) linearTime() (low, high, profit int) {
-	low = math.MaxInt
-	chg := x.getChange()
-	for i := len(x.data) - 1; i > 0; i-- {
-		if chg[i] < low {
-			low = chg[i]
-		}
-
+func (x *maxSubArray) linearTime() (int, int, int) {
+	type subArr struct {
+		low    int
+		high   int
+		profit int
 	}
+	low := 0
+	profit := 0
+	bestProfit := subArr{}
+	for i, v := range x.data {
+		x.iters++
+		profit = x.data[i] - x.data[low]
+		if v < x.data[low] {
+			low = i
+		}
+		if profit > bestProfit.profit {
+			bestProfit.low = low
+			bestProfit.high = i
+			bestProfit.profit = profit
+		}
+	}
+	return bestProfit.low, bestProfit.high, bestProfit.profit
 }
