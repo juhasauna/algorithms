@@ -64,34 +64,6 @@ func appC_C01_ex4(elements int) []int {
 	return result
 }
 
-func greatestCommonDivisor(a, b int) int {
-	for a != b {
-		if a > b {
-			a = a - b
-		} else {
-			b = b - a
-		}
-	}
-	return a
-}
-func euclideanAlgorithm(a, b int) int {
-	if b > a {
-		temp := b
-		b = a
-		a = temp
-	}
-	for b != 0 {
-		temp := a % b
-		a = b
-		b = temp
-	}
-	return a
-}
-func leastCommonMult(a, b int) int {
-	gcd := greatestCommonDivisor(a, b)
-	lcm := a * b / gcd
-	return lcm
-}
 
 func (x utils) not(p bool) bool {
 	return !p
