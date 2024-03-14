@@ -1,6 +1,7 @@
 package numberTheory
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -31,16 +32,25 @@ func greatestCommonDivisor(a, b int) int {
 	}
 	return a
 }
-func euclideanAlgorithm(a, b int) int {
+func euclideanAlgorithm(a, b int, printIt bool) int {
 	if b > a {
 		temp := b
 		b = a
 		a = temp
 	}
+	if printIt {
+		fmt.Println("Printing euclideanAlgorithm")
+	}
 	for b != 0 {
+		if printIt {
+			fmt.Println(a, b)
+		}
 		temp := a % b
 		a = b
 		b = temp
+	}
+	if printIt {
+		fmt.Println(a, b)
 	}
 	return a
 }

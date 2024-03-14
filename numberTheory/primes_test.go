@@ -13,9 +13,9 @@ func Test_primes(t *testing.T) {
 	}{
 		// {"primeFactorization", primeFactorizationTest},
 		// {"leastCommonMult", leastCommonMultTest},
-		// {"greatesCommonDivisor", greatesCommonDivisorTest},
+		{"greatesCommonDivisor", greatesCommonDivisorTest},
 		// {"euclideanAlgorithmSteps", euclideanAlgorithmStepsTest},
-		{"modularInverse", modularInverseTest},
+		// {"modularInverse", modularInverseTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.f)
@@ -123,23 +123,26 @@ func primeFactorizationTest(t *testing.T) {
 
 func greatesCommonDivisorTest(t *testing.T) {
 	tests := []struct {
+		name   string
 		a      int
 		b      int
 		expect int
 	}{
-		{414, 662, 1},
-		// {1, 1, 1},
-		// {12, 30, 6},
-		// {150, 70, 10},
-		// {32, 27, 1},
-		// {190, 34, 2},
-		// {17, 95, 1},
-		// {273, 98, 7},
-		// {540, 504, 36},
+		{"Koh2023 ex6 Pre3", 2331, 2037, 21},
+		// {"", 414, 662, 2},
+		// {"", 1, 1, 1},
+		// {"", 12, 30, 6},
+		// {"", 150, 70, 10},
+		// {"", 32, 27, 1},
+		// {"", 190, 34, 2},
+		// {"", 17, 95, 1},
+		// {"", 273, 98, 7},
+		// {"", 540, 504, 36},
 	}
+	printIt := true
 	for i, tt := range tests {
 		got := greatestCommonDivisor(tt.a, tt.b)
-		got2 := euclideanAlgorithm(tt.a, tt.b)
+		got2 := euclideanAlgorithm(tt.a, tt.b, printIt)
 		if !(got == tt.expect && got2 == tt.expect) {
 			t.Errorf("FAIL: inputs %d, %d, expected %d; got %d; got2 %d", tt.a, tt.b, tt.expect, got, got2)
 		} else {
