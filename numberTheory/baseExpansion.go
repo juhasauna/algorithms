@@ -29,12 +29,15 @@ func modularExponentiation(base, power, m int) int {
 	for i, j := 0, len(binary)-1; i < j; i, j = i+1, j-1 {
 		binary[i], binary[j] = binary[j], binary[i]
 	}
+	// fmt.Println(binary)
 	for _, v := range binary {
+		// fmt.Println("v", v, "pow", pow, "x", x, "m", m)
 		if v == 1 {
 			x = (x * pow) % m
 		}
 		pow = (pow * pow) % m
 	}
+	// fmt.Println("pow", pow, "x", x, "m", m)
 	return x
 }
 

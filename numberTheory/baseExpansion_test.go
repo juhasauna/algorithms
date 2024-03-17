@@ -12,7 +12,7 @@ func Test_baseExpansion(t *testing.T) {
 		f    func(*testing.T)
 	}{
 		// {"decToBase", decToBaseTest},
-		// {"modularExponentiation", modularExponentiationTest},
+		{"modularExponentiation", modularExponentiationTest},
 		// {"onesComplement", onesComplementTest},
 		// {"addBinary", addBinaryTest},
 		// {"trialDivision", trialDivisionTest},
@@ -25,16 +25,21 @@ func Test_baseExpansion(t *testing.T) {
 
 func modularExponentiationTest(t *testing.T) {
 	tests := []struct {
+		name  string
 		base  int
 		power int
 		m     int
 		want  int
 	}{
-		{3, 644, 645, 36},
+		// {"Rosen Cp4.2 Exp12", 3, 644, 645, 36},
+		// {"ExamQ", 7, 16, 100, 1},
+		{"tentti_2023-02-24_dunno 4 a)", 2, 32, 11, 4},
+		{"tentti_2023-02-24_dunno 4 b)", 3, 35, 17, 10},
+		{"tentti_2023-02-24_dunno 4 c)", 9, 100, 21, 9},
 	}
 	for _, tt := range tests {
 		if got := modularExponentiation(tt.base, tt.power, tt.m); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("modularExponentiation() = %v, want %v", got, tt.want)
+			t.Errorf("%s: modularExponentiation() = %v, want %v", tt.name, got, tt.want)
 		} else {
 			fmt.Println(got)
 		}

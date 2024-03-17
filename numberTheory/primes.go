@@ -22,7 +22,41 @@ func primeFactorization(n int) (result []int) {
 	return result
 }
 
+func mod(a, b int) int {
+	m := a % b
+	for m < 0 {
+		m += b
+	}
+	return m
+}
+
+func divMod(numerator, denominator int) (int, int) {
+	d := numerator / denominator
+	if d < 0 {
+		d -= 1
+	}
+	m := mod(numerator, denominator)
+	return d, m
+}
+
+// Euler's φ function
+func eulersTotient(a int) int {
+	result := 0
+	for i := 1; i < a; i++ {
+		if greatestCommonDivisor(a, i) == 1 {
+			result++
+		}
+	}
+	return result
+}
+
 func greatestCommonDivisor(a, b int) int {
+	if a == 0 || b == 0 {
+		if a > b {
+			return a
+		}
+		return b
+	}
 	for a != b {
 		if a > b {
 			a = a - b
@@ -32,6 +66,7 @@ func greatestCommonDivisor(a, b int) int {
 	}
 	return a
 }
+
 func euclideanAlgorithm(a, b int, printIt bool) int {
 	if b > a {
 		temp := b
@@ -83,10 +118,12 @@ func (x *euclidsAlg) bezoutCoefficients() (s int, t int) {
 	}
 	return s, t
 }
+
 func (x *euclidsAlg) gcd() int {
 	steps := x.getSteps()
 	return steps[len(steps)].b
 }
+
 func (x *euclidsAlg) sort() {
 	if x.b > x.a {
 		temp := x.b
@@ -98,6 +135,7 @@ func (x *euclidsAlg) sort() {
 func (x euclidsAlg) quotient() int {
 	return x.a / x.b
 }
+
 func (x euclidsAlg) remainder() int {
 	return x.a - x.b*x.quotient()
 }
