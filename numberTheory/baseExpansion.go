@@ -24,7 +24,7 @@ func decToBase(dec, base int) []int {
 // AKA - SquareMultiplyAlgorithm
 func modularExponentiation(base, power, m int) int {
 	x := 1
-	pow := base % power
+	pow := base % m
 	binary := decToBase(power, 2)
 	for i, j := 0, len(binary)-1; i < j; i, j = i+1, j-1 {
 		binary[i], binary[j] = binary[j], binary[i]
@@ -35,6 +35,7 @@ func modularExponentiation(base, power, m int) int {
 		if v == 1 {
 			x = (x * pow) % m
 		}
+
 		pow = (pow * pow) % m
 	}
 	// fmt.Println("pow", pow, "x", x, "m", m)

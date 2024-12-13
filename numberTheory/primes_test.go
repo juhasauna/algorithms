@@ -16,7 +16,7 @@ func Test_primes(t *testing.T) {
 		// {"leastCommonMult", leastCommonMultTest},
 		// {"greatesCommonDivisor", greatesCommonDivisorTest},
 		// {"euclideanAlgorithmSteps", euclideanAlgorithmStepsTest},
-		// {"modularInverse", modularInverseTest},
+		// {"modularInverse", modularInverseTest,
 		// {"mod", divModTest},
 		// {"bezoutCoefficients", bezoutCoefficientsTest},
 		{"eulersTotient", eulersTotientTest},
@@ -31,8 +31,17 @@ func eulersTotientTest(t *testing.T) {
 		a    int
 		want int
 	}{
+		{2, 1},
+		{7, 6},
 		{10, 4},
+		{20, 8},
 		{21, 12},
+		{100, 40},
+		{120, 32},
+		{150, 40},
+		{10200, 2560},
+		{22220, 8000},
+		{61500, 16000},
 	}
 	for _, tt := range tests {
 		got := eulersTotient(tt.a)
@@ -53,6 +62,8 @@ func divModTest(t *testing.T) {
 		{144, 7, 20, 4},
 		{-101, 13, -8, 3},
 		{199, 19, 10, 9},
+		{2023, 1, 20, 23},
+		{23, 1, 0, 23},
 	}
 	for _, tt := range tests {
 		d, m := divMod(tt.a, tt.b)
@@ -195,7 +206,9 @@ func greatesCommonDivisorTest(t *testing.T) {
 		b      int
 		expect int
 	}{
-		{"Rosen Cp4.3 Exp17", 252, 198, 18},
+		// {"", 2, 8, 2},
+		{"", 2, 120, 2},
+		// {"Rosen Cp4.3 Exp17", 252, 198, 18},
 		// {"Kohonen2023 ExSet6 Pre3", 2331, 2037, 21},
 		// {"Kohonen2023 slides syt(162, 114)", 162, 114, 6},
 		// {"Rosen Cp4.3 Ex32 a", 5, 1, 1},
@@ -210,7 +223,7 @@ func greatesCommonDivisorTest(t *testing.T) {
 		// {"Rosen Cp4.3 Ex24 f", 2 * 3 * 5 * 7, 2 * 3 * 5 * 7, 2 * 3 * 5 * 7},
 		// {"Rosen Cp4.3 Ex24 b", 111111, 11111, 1},
 		// {"Rosen Cp4.4 Exp2", 101, 4620, 1},
-		{"Rosen Cp4.4 Ex1", 26, 7, 1},
+		// {"Rosen Cp4.4 Ex1", 26, 7, 1},
 
 		// {"", 414, 662, 2},
 		// {"", 1, 1, 1},

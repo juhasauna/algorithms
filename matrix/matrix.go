@@ -1,6 +1,11 @@
 package matrix
 
-import "log"
+import (
+	"fmt"
+	"log"
+
+	"gonum.org/v1/gonum/mat"
+)
 
 type matrix [][]float64
 
@@ -13,6 +18,39 @@ func (x matrix) colLen() int {
 	return len(x[0])
 }
 
+func Pow(matrix *mat.Dense, power int) (*mat.Dense, error) {
+	r, c := matrix.Dims()
+	if r != c {
+		return nil, fmt.Errorf("matrix must be square")
+	}
+	identity := mat.NewDense(r, c, nil)
+	for i := 0; i < r; i++ {
+		identity.Set(i, i, 1)
+	}
+	if power == 0 {
+		return identity, nil
+	}
+	result := mat.DenseCopyOf(matrix)
+	for i := 1; i < power; i++ {
+		var temp mat.Dense
+		temp.Mul(result, matrix)
+		result.Copy(&temp)
+	}
+	return result, nil
+}
+
+func (m matrix) power(p int) matrix {
+	if p < 1 {
+		log.Fatal("cannot raise matrix to a power less than 1")
+	}
+	m_ := m
+	i := 1
+	for i < p {
+		i++
+		m_ = m_.matMul(m.transpose())
+	}
+	return m_
+}
 func (left matrix) matMul(right matrix) matrix {
 	// This does not work :/
 	leftRowLen, leftColLen := left.rowLen(), left.colLen()
