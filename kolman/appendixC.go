@@ -2,44 +2,43 @@
 package kolman
 
 import (
+	"algorithms/ut"
 	"fmt"
 	"log"
+	"math"
+	"slices"
 	"sort"
 )
 
-var ut utils
-
 func intUnion(a, b []int) []int { // Ex 1
-	result := a
-	for _, v := range b {
-		if !ut.containsInt(v, result) {
-			result = append(result, v)
-		}
-	}
-	return ut.distinctInt(result)
+	result := ut.Uniquify(append(a, b...))
+	sort.Slice(result, func(i, j int) bool {
+		return result[i] < result[j]
+	})
+	return result
 }
 
 func intIntersection(a, b []int) []int { // Ex 2
 	result := []int{}
 	for _, v := range a {
-		if ut.containsInt(v, b) {
+		if slices.Contains(b, v) {
 			result = append(result, v)
 		}
 	}
-	return ut.distinctInt(result)
+	return ut.Uniquify(result)
 }
 
 func intDifference(a, b []int) []int { // Ex 3.
 	// A - B (or using a different notation) A \ B
 	result := a
 	for i, v := range result {
-		if ut.containsInt(v, b) {
-			result = ut.rmElementInt(i, result)
+		if slices.Contains(b, v) {
+			result = ut.RemoveSliceValue(result, i)
 			result = intDifference(result, b)
 			break
 		}
 	}
-	return ut.distinctInt(result)
+	return ut.Uniquify(result)
 }
 
 func appC_C01_ex4_g(n int) int {
@@ -64,12 +63,14 @@ func appC_C01_ex4(elements int) []int {
 	return result
 }
 
+type logic struct {
+}
 
-func (x utils) not(p bool) bool {
+func (x logic) not(p bool) bool {
 	return !p
 }
 
-func (x utils) and(p ...bool) bool {
+func (x logic) and(p ...bool) bool {
 	for _, v := range p {
 		if !v {
 			return false
@@ -77,7 +78,7 @@ func (x utils) and(p ...bool) bool {
 	}
 	return true
 }
-func (x utils) or(p ...bool) bool {
+func (x logic) or(p ...bool) bool {
 	for _, v := range p {
 		if v {
 			return true
@@ -145,25 +146,25 @@ func getlogicalExpressionType(p, q bool, f func(bool, bool) bool) logicalExprTyp
 	return Contingency
 }
 
-func (x utils) fact(n int) int {
+func (x logic) fact(n int) int {
 	if n < 2 {
 		return 1
 	}
 	return n * x.fact(n-1)
 }
-func (x utils) combinations(n, r int) int {
+func (x logic) combinations(n, r int) int {
 	if n < r {
 		return 0
 	}
 	return x.fact(n) / (x.fact(r) * x.fact(n-r))
 }
-func (x utils) permutations(n, r int) int {
+func (x logic) permutations(n, r int) int {
 	if n < r {
 		return 0
 	}
 	return x.fact(n) / x.fact(n-r)
 }
-func (x utils) combinationsUpTo(n, r int) []int {
+func (x logic) combinationsUpTo(n, r int) []int {
 	result := []int{}
 	if r > n {
 		return result
@@ -173,7 +174,7 @@ func (x utils) combinationsUpTo(n, r int) []int {
 	}
 	return result
 }
-func (x utils) permutationsUpTo(n, r int) []int {
+func (x logic) permutationsUpTo(n, r int) []int {
 	result := []int{}
 	if r > n {
 		return result
@@ -182,6 +183,36 @@ func (x utils) permutationsUpTo(n, r int) []int {
 		result = append(result, x.permutations(n, i))
 	}
 	return result
+}
+
+func closestPairOfPointsBruteForce(arr [][2]float64) [2][2]float64 {
+	var minDist float64 = 999
+	var minPair [2][2]float64 = [2][2]float64{{999, 999}, {999, 999}}
+	for i, vi := range arr {
+		for _, vj := range arr[i+1:] { // One off error
+			dist := math.Pow(vi[0]-vj[0], 2) + math.Pow(vi[1]-vj[1], 2)
+			if dist < minDist {
+				minDist = dist
+				minPair[0] = vi
+				minPair[1] = vj
+			}
+		}
+	}
+	return minPair
+}
+
+func fibonacciIterative2(n int) int {
+	if n < 1 {
+		return 0
+	}
+	x := 0
+	y := 1
+	for i := 1; i < n; i++ {
+		z := x + y
+		x = y
+		y = z
+	}
+	return y
 }
 
 func fibonacciIterative(k int) int {

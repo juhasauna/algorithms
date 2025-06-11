@@ -3,11 +3,11 @@ package kolman
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"testing"
 )
 
 func Test_appendixC(t *testing.T) {
-	// time.Sleep(2 * time.Second)
 	tests := []struct {
 		name string
 		f    func(*testing.T)
@@ -22,7 +22,7 @@ func Test_appendixC(t *testing.T) {
 		// {"getlogicalExpressionTypeTest", getlogicalExpressionTypeTest},
 		// {"intDifference", intDifferenceTest},
 		// {"intIntersection", intIntersectionTest},
-		// {"intUnion", intUnionTest},
+		{"intUnion", intUnionTest},
 		// {"permutations", permutationsTest},
 		// {"permutationsUpToTest", permutationsUpToTest},
 		// {"permutationFunc_disjointCycleProduct", permutationFunc_disjointCycleProductTest},
@@ -127,7 +127,7 @@ func fibonacciUpToTest(name string, t *testing.T) {
 	}
 }
 func combinationsUpToTest(name string, t *testing.T) {
-	ut := utils{}
+	x := logic{}
 	tests := []struct {
 		n      int
 		r      int
@@ -142,7 +142,7 @@ func combinationsUpToTest(name string, t *testing.T) {
 		{4, 3, []int{4, 1}},
 	}
 	for i, tt := range tests {
-		got := ut.combinationsUpTo(tt.n, tt.r)
+		got := x.combinationsUpTo(tt.n, tt.r)
 		if !reflect.DeepEqual(got, tt.expect) {
 			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.n, tt.r, tt.expect, got)
 		} else {
@@ -151,7 +151,7 @@ func combinationsUpToTest(name string, t *testing.T) {
 	}
 }
 func combinationsTest(name string, t *testing.T) {
-	ut := utils{}
+	x := logic{}
 	tests := []struct {
 		n      int
 		r      int
@@ -166,7 +166,7 @@ func combinationsTest(name string, t *testing.T) {
 		{4, 3, 4},
 	}
 	for i, tt := range tests {
-		got := ut.combinations(tt.n, tt.r)
+		got := x.combinations(tt.n, tt.r)
 		if !reflect.DeepEqual(got, tt.expect) {
 			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.n, tt.r, tt.expect, got)
 		} else {
@@ -175,7 +175,7 @@ func combinationsTest(name string, t *testing.T) {
 	}
 }
 func permutationsUpToTest(name string, t *testing.T) {
-	ut := utils{}
+	x := logic{}
 	tests := []struct {
 		n      int
 		r      int
@@ -186,7 +186,7 @@ func permutationsUpToTest(name string, t *testing.T) {
 		{4, 3, []int{4, 12, 24}},
 	}
 	for i, tt := range tests {
-		got := ut.permutationsUpTo(tt.n, tt.r)
+		got := x.permutationsUpTo(tt.n, tt.r)
 		if !reflect.DeepEqual(got, tt.expect) {
 			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.n, tt.r, tt.expect, got)
 		} else {
@@ -195,7 +195,7 @@ func permutationsUpToTest(name string, t *testing.T) {
 	}
 }
 func permutationsTest(name string, t *testing.T) {
-	ut := utils{}
+	x := logic{}
 	tests := []struct {
 		n      int
 		r      int
@@ -206,7 +206,7 @@ func permutationsTest(name string, t *testing.T) {
 		{4, 3, 24},
 	}
 	for i, tt := range tests {
-		got := ut.permutations(tt.n, tt.r)
+		got := x.permutations(tt.n, tt.r)
 		if !reflect.DeepEqual(got, tt.expect) {
 			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.n, tt.r, tt.expect, got)
 		} else {
@@ -214,25 +214,25 @@ func permutationsTest(name string, t *testing.T) {
 		}
 	}
 }
-func intUnionTest(name string, t *testing.T) {
+func intUnionTest(t *testing.T) {
 	tests := []struct {
 		a      []int
 		b      []int
 		expect []int
 	}{
 		{[]int{1, 2, 3}, []int{3, 4, 5}, []int{1, 2, 3, 4, 5}},
-		{[]int{-1, -3, -3}, []int{-3, -4, -5}, []int{-1, -3, -4, -5}},
+		{[]int{-1, -3, -3}, []int{-3, -4, -5}, []int{-5, -4, -3, -1}},
 	}
 	for i, tt := range tests {
 		got := intUnion(tt.a, tt.b)
 		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.a, tt.b, tt.expect, got)
+			t.Errorf("fail with inputs %v %v, expected %v; got %v", tt.a, tt.b, tt.expect, got)
 		} else {
-			fmt.Printf("SUCCESS: %s %d\n", name, i)
+			fmt.Printf("SUCCESS: %d\n", i)
 		}
 	}
 }
-func intIntersectionTest(name string, t *testing.T) {
+func intIntersectionTest(t *testing.T) {
 	tests := []struct {
 		a      []int
 		b      []int
@@ -243,10 +243,13 @@ func intIntersectionTest(name string, t *testing.T) {
 	}
 	for i, tt := range tests {
 		got := intIntersection(tt.a, tt.b)
+		sort.Slice(got, func(i2, j int) bool {
+			return i2 < j
+		})
 		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("%s fail with inputs %v %v, expected %v; got %v", name, tt.a, tt.b, tt.expect, got)
+			t.Errorf("fail with inputs %v %v, expected %v; got %v", tt.a, tt.b, tt.expect, got)
 		} else {
-			fmt.Printf("SUCCESS: %s %d\n", name, i)
+			fmt.Printf("SUCCESS: %d\n", i)
 		}
 	}
 }

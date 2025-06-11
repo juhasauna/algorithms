@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 // type FSM struct {
@@ -15,11 +17,12 @@ import (
 // 	regexp string
 // }
 type FSM struct {
-	name       string
-	delta      map[int]map[string]int // state-transition function δ:Q x Σ -> Q.
-	F          []int                  // Set of final states. ('Formally' should be aSubset of Q but we're doing it differently).
-	regexp     string
-	regexpFunc func(string) bool
+	name        string
+	delta       map[int]map[string]int // state-transition function δ:Q x Σ -> Q.
+	F           []int                  // Set of final states. ('Formally' should be aSubset of Q but we're doing it differently).
+	regexp      string
+	regexpFunc  func(string) bool
+	description string
 }
 
 func fsmCEtumerkittömätReaaliluvut() FSM {
@@ -67,6 +70,55 @@ func fsm_not_0011() FSM {
 	//regexp: "^(0|1|01|10|11|00(?!11))*$"} // This kind of regex is not supported in Go.
 }
 
+func fsm_2022_S23_compute(s string) int {
+	// THIS IS NOT DONE. Stopped working on it because it's boring. Maybe delete it and do it simply as in the solutions.
+	minusStart := strings.Index(s, "-") == 0
+	splitIt := strings.Split(s, "+")
+	word := []string{}
+	if minusStart {
+		word = []string{"-"}
+	}
+	for _, v := range splitIt {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if i < 0 {
+			word = append(word, "-")
+			word = append(word, "d")
+		} else {
+			word = append(word, "d")
+		}
+		word = append(word, "+")
+	}
+	word = word[:len(word)-2]
+
+	if !fsm_2022_S23().machine(0, word) {
+		log.Fatalf("invalid input: %s", s)
+	}
+
+	return 0
+}
+
+func fsm_2022_S23() FSM {
+	return FSM{
+		name:  "2022_S23",
+		delta: m2022_S23_d(),
+		F:     []int{1},
+		// regexpFunc: regexpMatch("\\A(0|(1|^$|00*11*00*1)(1|00*11*00*1)*0)0*(11*(0|00*(0|^$)|1|^$)|1)$"),
+		// regexp:     "\\A(0|(1|^$|00*11*00*1)(1|00*11*00*1)*0)0*(11*(0|00*(0|^$)|1|^$)|1)$",
+		description: "Design a finite automaton that recognises sequences of nonnegative integers separated by plus and minus signs",
+	}
+}
+func m2022_S23_d() map[int]map[string]int {
+	m := map[int]map[string]int{
+		0: {"-": 2, "d": 1},
+		1: {"-": 2, "+": 3},
+		2: {"d": 1},
+		3: {"d": 1},
+	}
+	return m
+}
 func m2022_H22_ii_d() map[int]map[string]int {
 	m := map[int]map[string]int{
 		0: {"0": 1, "1": 0},

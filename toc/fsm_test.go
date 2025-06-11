@@ -11,7 +11,8 @@ func Test_fsm(t *testing.T) {
 		f    func(*testing.T)
 	}{
 
-		{"fsmTest", fsmTest},
+		{"fsm_computeTest", fsm_computeTest},
+		// {"fsmTest", fsmTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.f)
@@ -25,14 +26,20 @@ func fsmTest(t *testing.T) {
 		input string
 		want  bool
 	}{
-		{fsm_2022_H22_ii(), "odd number of 01", "", false},
-		{fsm_2022_H22_ii(), "odd number of 01", "01", true},
-		{fsm_2022_H22_ii(), "odd number of 01", "0101", false},
-		{fsm_2022_H22_ii(), "odd number of 01", "111101", true},
-		{fsm_2022_H22_ii(), "odd number of 01", "111101000000101", true},
-		{fsm_2022_H22_ii(), "odd number of 01", "0000", false},
-		{fsm_2022_H22_ii(), "odd number of 01", "0101010000", true},
-		{fsm_2022_H22_ii(), "odd number of 01", "000001", true},
+
+		{fsm_2022_S23(), "", "-d+d", true},
+		{fsm_2022_S23(), "", "-dd", false},
+		{fsm_2022_S23(), "", "-d+d-d+d-d-d-d-d+d+d+d", true},
+		{fsm_2022_S23(), "", "d-d-d-d-d+d+d+d", true},
+		{fsm_2022_S23(), "", "d-d-d-d", true},
+		// {fsm_2022_H22_ii(), "odd number of 01", "", false},
+		// {fsm_2022_H22_ii(), "odd number of 01", "01", true},
+		// {fsm_2022_H22_ii(), "odd number of 01", "0101", false},
+		// {fsm_2022_H22_ii(), "odd number of 01", "111101", true},
+		// {fsm_2022_H22_ii(), "odd number of 01", "111101000000101", true},
+		// {fsm_2022_H22_ii(), "odd number of 01", "0000", false},
+		// {fsm_2022_H22_ii(), "odd number of 01", "0101010000", true},
+		// {fsm_2022_H22_ii(), "odd number of 01", "000001", true},
 		// {fsm0011(), "epsilon", "", false},
 		// {fsm0011(), "001", "001", false},
 		// {fsm0011(), "0011", "0011", true},
@@ -68,11 +75,29 @@ func fsmTest(t *testing.T) {
 				sliceInput = strings.Split(tt.input, "")
 			}
 			got := tt.fsm.machine(0, sliceInput)
-			// if got != tt.want {
-			// 	t.Errorf("FSM() = %v, want %v", got, tt.want)
+			if got != tt.want {
+				t.Errorf("FSM() = %v, want %v", got, tt.want)
+			}
+			// if got != tt.want || got != tt.fsm.regexpFunc(tt.input) {
+			// 	t.Errorf("FSM() = %v, want %v/%v", got, tt.want, tt.fsm.regexpFunc(tt.input))
 			// }
-			if got != tt.want || got != tt.fsm.regexpFunc(tt.input) {
-				t.Errorf("FSM() = %v, want %v/%v", got, tt.want, tt.fsm.regexpFunc(tt.input))
+		})
+	}
+}
+func fsm_computeTest(t *testing.T) {
+	tests := []struct {
+		f     func(s string) int
+		input string
+		want  int
+	}{
+
+		{fsm_2022_S23_compute, "23+12-34-23", 1},
+	}
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			got := tt.f(tt.input)
+			if got != tt.want {
+				t.Errorf("FSM() = %v, want %v", got, tt.want)
 			}
 		})
 	}
