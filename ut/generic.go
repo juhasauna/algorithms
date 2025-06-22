@@ -3,7 +3,10 @@ package ut
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"time"
+
+	"golang.org/x/exp/constraints"
 )
 
 func TimeTrack(start time.Time, name string) {
@@ -71,4 +74,53 @@ func Uniquify[T comparable](slice []T) []T {
 		result = append(result, key)
 	}
 	return result
+}
+
+func IsFunctionFullyDefined[T comparable](f map[T]T) (bool, *T) {
+	// f: set -> set
+	set := []T{}
+	for key, v := range f {
+		set = append(set, key)
+		set = append(set, v)
+	}
+	set = Uniquify(set)
+	for _, element := range set {
+		if _, ok := f[element]; !ok {
+			// fmt.Printf("Function not defined for element: %v\n", element)
+			return false, &element
+		}
+	}
+	return true, nil
+}
+
+func Min[T constraints.Ordered](a, b T) T {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func Max[T constraints.Ordered](a, b T) T {
+	if a > b {
+		return a
+	}
+	return b
+}
+func NewMinAndMax[T constraints.Ordered](min, max, value T) (T, T) {
+	if min > value {
+		return value, max
+	}
+	if max < value {
+		return min, value
+	}
+	return min, max
+}
+
+func GetSorted[T constraints.Ordered](data []T) []T {
+	if len(data) == 0 {
+		return nil
+	}
+	x := slices.Clone(data)
+	slices.Sort(x)
+	return x
 }

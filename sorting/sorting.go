@@ -11,6 +11,7 @@ import (
 type searcher struct {
 	target int
 	values []int
+	iters  int
 }
 
 func (x searcher) binarySearch(lo, hi, counter int) (bool, int) {

@@ -23,14 +23,101 @@ func Test_ntu(t *testing.T) {
 		// {"knapsackExact", knapsackExactTest},
 		// {"hw24_04_04", hw24_04_04Test},
 		// {"towersOfHanoiTest", towersOfHanoiTest},
-		// {"cp5MappingBijective", cp5MappingBijectiveTest},
+		{"cp5MappingBijective", cp5MappingBijectiveTest},
 		// {"evaluatePolynomials", evaluatePolynomialsTest},
-		{"maximalInducedSubgraph", maximalInducedSubgraphTest},
+		// {"maximalInducedSubgraph", maximalInducedSubgraphTest},
+		// {"newAdjMatrix", newAdjMatrixTest},
+		// {"celebrityBruteForce", celebrityBruteForceTest},
+		// {"maximumConsequtiveSubsequence", maximumConsequtiveSubsequenceTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.f(t)
 		})
+	}
+}
+
+func maximumConsequtiveSubsequenceTest(t *testing.T) {
+	tests := []struct {
+		arr  []float64
+		want float64
+	}{
+		{[]float64{2, -3, 1.5, -1, 3, -2, -3, 3}, 3.5},
+	}
+	for i, tt := range tests {
+		x := NTU{verbose: true}
+		got := x.maximumConsequtiveSubsequence(tt.arr)
+		if got != tt.want {
+			t.Errorf("FAIL got: %.2f, want: %.2f", got, tt.want)
+		} else {
+			t.Logf("i: %d SUCCESS got: %v", i, got)
+		}
+	}
+}
+func celebrityBruteForceTest(t *testing.T) {
+	tests := []struct {
+		s         []string
+		celebrity int
+	}{
+		{[]string{
+			"101",
+			"011",
+			"001",
+		}, 2},
+		{[]string{
+			"1001",
+			"0101",
+			"0011",
+			"0001",
+		}, 3},
+		{[]string{
+			"1110",
+			"0100",
+			"0111",
+			"1101",
+		}, 1},
+		{[]string{
+			"1110",
+			"0110",
+			"0111",
+			"1001",
+		}, -1},
+	}
+	for i, tt := range tests {
+		x := NTU{verbose: false}
+		m := x.newAdjMatrix(tt.s)
+		got := x.celebrityBruteForce(m)
+		t.Logf("BF iters: %d", x.iters)
+		x.iters = 0
+		gotCeleb := x.celebrityFromPseudo(m)
+		t.Logf("Pseudo iters: %d", x.iters)
+		if gotCeleb != tt.celebrity {
+			t.Errorf("i: %d FAIL got: %v, want: %d", i, gotCeleb, tt.celebrity)
+		} else {
+			t.Logf("i: %d SUCCESS got: %d", i, gotCeleb)
+		}
+		if !got[tt.celebrity] && tt.celebrity != -1 {
+			t.Errorf("FAIL got: %v, %d should be true", got, tt.celebrity)
+		} else {
+			t.Logf("i: %d SUCCESS got: %v", i, got)
+
+		}
+	}
+}
+func newAdjMatrixTest(t *testing.T) {
+	tests := []struct {
+		s []string
+	}{
+		{[]string{
+			"101",
+			"111",
+			"000",
+		}},
+	}
+	for _, tt := range tests {
+		x := NTU{}
+		got := x.newAdjMatrix(tt.s)
+		t.Logf("%v", got)
 	}
 }
 
@@ -87,13 +174,15 @@ func cp5MappingBijectiveTest(t *testing.T) {
 		mapping map[int]int
 		want    []int
 	}{
+		// IMPORTANT: The function needs to be defined for all elements in the set! If the set includes 5, then f(5) must be defined.
 		{map[int]int{1: 3, 2: 1, 3: 1, 4: 4, 5: 2}, []int{1, 3, 4}},
+		// {map[int]int{1: 2, 3: 4}, []int{}}, // Invalid function
 	}
 
 	for _, tt := range tests {
 		x := NTU{verbose: true}
 		got := x.cp5MappingBijective(tt.mapping)
-		if !reflect.DeepEqual(got, tt.want) {
+		if !reflect.DeepEqual(got, tt.want) && !(len(got) == 0 && len(tt.want) == 0) {
 			t.Errorf("FAIL got: %v != %v", got, tt.want)
 		} else {
 			t.Logf("SUCCESS: %v", got)

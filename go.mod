@@ -5,6 +5,7 @@ go 1.21
 toolchain go1.23.4
 
 require (
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	gonum.org/v1/gonum v0.15.0
 	gonum.org/v1/plot v0.14.0
 )
