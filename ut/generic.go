@@ -93,7 +93,15 @@ func IsFunctionFullyDefined[T comparable](f map[T]T) (bool, *T) {
 	return true, nil
 }
 
-func Min[T constraints.Ordered](a, b T) T {
+func Min[T constraints.Ordered](a T, b ...T) T {
+	for _, v := range b {
+		if v < a {
+			a = v
+		}
+	}
+	return a
+}
+func Min_old[T constraints.Ordered](a, b T) T {
 	if a < b {
 		return a
 	}
@@ -123,4 +131,38 @@ func GetSorted[T constraints.Ordered](data []T) []T {
 	x := slices.Clone(data)
 	slices.Sort(x)
 	return x
+}
+
+func Equal2DSlices(a, b [][]int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if len(a[i]) != len(b[i]) {
+			return false
+		}
+		for j := range a[i] {
+			if a[i][j] != b[i][j] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func IsPowerOfTwo(n int) bool {
+	return n > 0 && (n&(n-1)) == 0
+}
+
+func AllAppearEvenTimes(nums []int) bool {
+	counts := make(map[int]int)
+	for _, n := range nums {
+		counts[n]++
+	}
+	for _, count := range counts {
+		if count%2 != 0 {
+			return false
+		}
+	}
+	return true
 }

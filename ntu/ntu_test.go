@@ -23,12 +23,13 @@ func Test_ntu(t *testing.T) {
 		// {"knapsackExact", knapsackExactTest},
 		// {"hw24_04_04", hw24_04_04Test},
 		// {"towersOfHanoiTest", towersOfHanoiTest},
-		{"cp5MappingBijective", cp5MappingBijectiveTest},
+		// {"cp5MappingBijective", cp5MappingBijectiveTest},
 		// {"evaluatePolynomials", evaluatePolynomialsTest},
 		// {"maximalInducedSubgraph", maximalInducedSubgraphTest},
 		// {"newAdjMatrix", newAdjMatrixTest},
 		// {"celebrityBruteForce", celebrityBruteForceTest},
 		// {"maximumConsequtiveSubsequence", maximumConsequtiveSubsequenceTest},
+		{"UnionFind", UnionFindTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -37,6 +38,29 @@ func Test_ntu(t *testing.T) {
 	}
 }
 
+type Tuple struct {
+	a int
+	b int
+}
+
+func UnionFindTest(t *testing.T) {
+	tests := []struct {
+		seq   []int
+		union []Tuple
+	}{
+		{[]int{1, 2, 3, 4, 5}, []Tuple{{1, 2}, {3, 4}, {0, 1}, {4, 1}}},
+	}
+	for _, tt := range tests {
+		x := UnionFind{}
+		x.UnionFindInit(tt.seq)
+		t.Logf("%v", x.sets)
+		for _, v := range tt.union {
+			x.Union(v.a, v.b)
+		}
+		t.Logf("%v", x.sets)
+
+	}
+}
 func maximumConsequtiveSubsequenceTest(t *testing.T) {
 	tests := []struct {
 		arr  []float64

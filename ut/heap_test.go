@@ -13,8 +13,8 @@ func Test_heap(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
-		// {"insert", insertTest},
-		{"heapSort", heapSortTest},
+		{"insert", insertTest},
+		// {"heapSort", heapSortTest},
 		// {"print", printTest},
 		// {"heapify", heapifyTest},
 		// {"IsMaxHeap", IsMaxHeapTest},
@@ -43,24 +43,28 @@ func IsMaxHeapTest(t *testing.T) {
 }
 func heapifyTest(t *testing.T) {
 	tests := []struct {
-		name string
-		seq  []int
+		name  string
+		seq   []int
+		isMin bool
 	}{
-		// {"hello", td.Test11},
-		{"TDManberHeap", TDManberHeap},
+		{"hello", td.Test11, false},
+		{"hello", td.Test11, true},
+		{"TDManberHeap", TDManberHeap, false},
+		{"TDManberHeap", TDManberHeap, true},
 	}
 
 	for _, tt := range tests {
-		h := Heap{Imp: tt.seq, t: t}
+		h := Heap{Imp: tt.seq, t: t, IsMin: tt.isMin}
 		h.Heapify()
-		if !h.IsMaxHeap() {
-			t.Fatalf("NOT A MAX HEAP")
+		if h.IsMin && !h.IsMinHeap() {
+			t.Fatalf("NOT MIN HEAP")
+		} else if !h.IsMin && !h.IsMaxHeap() {
+			t.Fatalf("NOT MAX HEAP")
 		}
 	}
 }
 
 func heapSortTest(t *testing.T) {
-
 	tests := []struct {
 		name       string
 		seq        []int
@@ -77,20 +81,16 @@ func heapSortTest(t *testing.T) {
 	for _, tt := range tests {
 		wantSlice := slices.Clone(tt.seq)
 		wantSlice = GetSorted(wantSlice)
-		h := NewHeap(tt.seq)
-		h.t = t
-		if !h.IsMaxHeap() {
-			t.Fatalf("NOT A MAX HEAP")
-		}
-		sortedSeq := h.GetSortedValues(tt.descending)
-
-		t.Logf("want 1: %v", wantSlice)
 		if tt.descending {
 			slices.Reverse(wantSlice)
-			t.Logf("want 2: %v", wantSlice)
 		}
+		h := NewHeap(tt.seq, true)
+		h.t = t
+		h.VerifyHeap()
+		sortedSeq := h.GetSortedValues(tt.descending)
+
 		if !slices.Equal(sortedSeq, wantSlice) {
-			t.Error("FAIL heapSort")
+			t.Errorf("FAIL h.GetSortedValues, got: %v !=  want: %v", wantSlice, sortedSeq)
 		}
 		n := len(tt.seq)
 		ratio := float64(h.iters) / float64(n)
@@ -103,31 +103,30 @@ func heapSortTest(t *testing.T) {
 
 func insertTest(t *testing.T) {
 	tests := []struct {
-		name string
-		seq  []int
+		name  string
+		seq   []int
+		isMin bool
 	}{
-		{"hello", td.Test11},
+		{"hello", td.Test11, false},
+		{"hello", td.Test11, true},
 		// {"hello", td.Test12},
 	}
 
 	for _, tt := range tests {
-		h := NewHeap(tt.seq)
-		h.t = t
+		h := Heap{IsMin: tt.isMin, t: t}
+		h.InsertAll(tt.seq)
 		h.PrintTree()
-		b := h.IsMaxHeap()
-		t.Logf("%+v, IsMaxHeap: %t", h.Imp, b)
+		ok := false
+		if tt.isMin {
+			ok = h.IsMinHeap()
+		} else {
+			ok = h.IsMaxHeap()
+		}
+		if !ok {
+			t.Errorf("FAIL %s", tt.name)
+		}
+		// t.Logf("%+v, IsMaxHeap: %t, IsMinHeap: %t", h.Imp)
 	}
-	return
-	// h := NewHeap([]int{5, 4, 3, 2, 1})
-	// h := NewHeap([]int{})
-	// h.t = t
-	// h.Insert(6)
-	// h.Insert(8)
-	// h.Insert(10)
-	// h.Insert(5)
-	// h.PrintTree()
-	// b := h.IsMaxHeap()
-	// t.Logf("%+v, %t", h.Imp, b)
 }
 
 func printTest(t *testing.T) {

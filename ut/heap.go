@@ -11,6 +11,7 @@ type Heap struct {
 	Name  string
 	t     *testing.T
 	iters int
+	IsMin bool
 }
 
 func (x Heap) Logf(format string, a ...any) {
@@ -39,8 +40,9 @@ func (x Heap) Log(a ...any) {
 	}
 }
 
-func NewHeap(seq []int) Heap {
-	h := Heap{Imp: seq}
+func NewHeap(seq []int, isMin bool) Heap {
+	h := Heap{Imp: seq, IsMin: isMin}
+	fmt.Printf("New Heap %v,%t\n", seq, isMin)
 	h.Heapify()
 	return h
 }
@@ -60,19 +62,15 @@ func (x *Heap) Swap(i, j int) {
 }
 
 func (x *Heap) GetSortedValues(descending bool) []int {
-	{
-		// Let's keep the original heap intact.
-		originalImp := slices.Clone(x.Imp)
-		defer func(orig []int) { x.Imp = orig }(originalImp)
+	sorted := x.SortInplace()
+	if x.IsMin && !descending {
+		slices.Reverse(sorted)
+		return sorted
+	} else if !x.IsMin && descending {
+		slices.Reverse(sorted)
+		return sorted
 	}
-	if descending {
-		sortedSeq := []int{}
-		for x.Size() > 0 {
-			sortedSeq = append(sortedSeq, x.Extract())
-		}
-		return sortedSeq
-	}
-	return x.SortInplace()
+	return sorted
 }
 func HeapSort(seq []int, descending bool) []int {
 	{
@@ -81,47 +79,25 @@ func HeapSort(seq []int, descending bool) []int {
 		// defer func(orig []int) { seq = orig }(originalSeq)
 	}
 	x := Heap{Imp: seq}
-	x.Heapify()
-	if descending {
-		sortedSeq := []int{}
-		for x.Size() > 0 {
-			max := x.Extract()
-			sortedSeq = append(sortedSeq, max)
-		}
-		return sortedSeq
-	}
-	return x.SortInplace()
+	return x.GetSortedValues(descending)
 }
 
 func (x Heap) SortInplace() []int {
 	return x.sortHelper(x.Size() - 1)
 }
 
-func (x Heap) sortHelper(lastIndex int) []int {
-	if lastIndex < 1 {
+func (x Heap) sortHelper(end int) []int {
+	if end < 1 {
 		return x.Imp
 	}
 
-	x.Swap(0, lastIndex)
-	lastIndex--
+	x.Swap(0, end)
+	end--
 	parent := 0
-	for {
-		child := x.LeftChild(parent)
-		if child > lastIndex {
-			break
-		}
-		if r := x.RightChild(parent); r <= lastIndex {
-			if x.Imp[child] < x.Imp[r] {
-				child = r
-			}
-		}
-		if x.Imp[child] <= x.Imp[parent] {
-			break
-		}
-		x.Swap(parent, child)
-		parent = child
+	for parent != -1 {
+		parent = x.siftHelper(parent, end)
 	}
-	return x.sortHelper(lastIndex)
+	return x.sortHelper(end)
 }
 
 // Top-down insertion
@@ -138,37 +114,30 @@ func (x *Heap) Extract() int {
 	}
 	head := x.Head()
 
-	lastIndex := x.Size() - 1
-	x.Imp[0] = x.Imp[lastIndex]
-	x.Imp = x.Imp[:lastIndex]
-	lastIndex--
+	end := x.Size() - 1
+	x.Imp[0] = x.Imp[end]
+	x.Imp = x.Imp[:end]
+	end--
 	// x.Logf("start Extract: head: %d, Imp: %v\n", head, x.Imp)
-
 	parent := 0
-	for {
-		child := x.LeftChild(parent)
-		if child > lastIndex {
-			break
-		}
-		if r := x.RightChild(parent); r <= lastIndex {
-			if x.Imp[child] < x.Imp[r] {
-				child = r
-			}
-		}
-		if x.Imp[child] <= x.Imp[parent] {
-			break
-		}
-		x.Swap(parent, child)
-		parent = child
-	}
 
-	if !x.IsMaxHeap() {
-		x.Fatal("quit")
+	for parent != -1 {
+		parent = x.siftHelper(parent, end)
 	}
+	x.VerifyHeap()
 	return head
 }
 
-func (x *Heap) Insert(value int) {
+func (x *Heap) VerifyHeap() {
+	if x.IsMin && !x.IsMinHeap() {
+		x.PrintTree()
+		x.Fatal("not MIN heap")
+	} else if !x.IsMin && !x.IsMaxHeap() {
+		x.PrintTree()
+		x.Fatal("not MAX heap")
+	}
+}
+func (x *Heap) Insert_maxOnly(value int) {
 	child := x.Size() + 1
 	x.Imp = append(x.Imp, value)
 	parent := child / 2
@@ -176,6 +145,30 @@ func (x *Heap) Insert(value int) {
 		pi := parent - 1
 		ci := child - 1
 		if x.Imp[pi] < x.Imp[ci] {
+			x.Imp[pi], x.Imp[ci] = x.Imp[ci], x.Imp[pi]
+			child = parent
+			parent = parent / 2
+		} else {
+			break
+		}
+	}
+}
+
+func (x *Heap) Insert(value int) {
+	compare := func(a, b int) bool {
+		c := x.Imp[a] < x.Imp[b]
+		if x.IsMin {
+			c = !c
+		}
+		return c
+	}
+	child := x.Size() + 1
+	x.Imp = append(x.Imp, value)
+	parent := child / 2
+	for parent > 0 {
+		pi := parent - 1
+		ci := child - 1
+		if compare(pi, ci) {
 			x.Imp[pi], x.Imp[ci] = x.Imp[ci], x.Imp[pi]
 			child = parent
 			parent = parent / 2
@@ -262,28 +255,60 @@ func (x Heap) IsMaxHeap() bool {
 	}
 	return true
 }
+func (x Heap) IsMinHeap() bool {
+	n := x.Size()
+	for i := 0; i <= (n/2)-1; i++ {
+		leftChild := x.LeftChild(i)
+		rightChild := x.RightChild(i)
+		if leftChild < n && x.Imp[leftChild] < x.Imp[i] {
+			x.Logf("Violation: parent x.Imp[%d](%d) > left child x.Imp[%d](%d)\n", i, x.Imp[i], leftChild, x.Imp[leftChild])
+			return false
+		}
+		if rightChild < n && x.Imp[rightChild] < x.Imp[i] {
+			x.Logf("Violation: parent x.Imp[%d](%d) > right child x.Imp[%d](%d)\n", i, x.Imp[i], rightChild, x.Imp[rightChild])
+			return false
+		}
+	}
+	return true
+}
 
-func (x *Heap) siftDown(parent, end int) {
+func (x *Heap) siftHelper(parent, end int) int {
+	compare := func(a, b int) bool {
+		c := x.Imp[a] < x.Imp[b]
+		if x.IsMin {
+			c = !c
+		}
+		return c
+	}
+	compareEq := func(a, b int) bool {
+		c := x.Imp[a] <= x.Imp[b]
+		if x.IsMin {
+			c = !c
+		}
+		return c
+	}
+	x.IncrementIters()
 	leftChild := x.LeftChild(parent)
-	for leftChild <= end {
-		x.IncrementIters()
-		leftChild = x.LeftChild(parent)
-		if leftChild > end {
-			break
+	if leftChild > end {
+		return -1
+	}
+	newParent := leftChild
+	rightChild := leftChild + 1
+	if rightChild <= end {
+		if compare(leftChild, rightChild) {
+			newParent = rightChild
 		}
-		newParent := leftChild
-		rightChild := leftChild + 1
-		if rightChild <= end {
-			if x.Imp[leftChild] < x.Imp[rightChild] {
-				newParent = rightChild
-			}
-		}
-		if x.Imp[newParent] <= x.Imp[parent] {
-			break
-		}
-		x.Swap(parent, newParent)
-		x.Logf("parent: %d/%d, swap: %d/%d, heap: %v", parent, x.Imp[parent], newParent, x.Imp[newParent], x.Imp)
-		parent = newParent
+	}
+	if compareEq(newParent, parent) {
+		return -1
+	}
+	x.Swap(parent, newParent)
+	// x.Logf("parent: %d/%d, swap: %d/%d, heap: %v", parent, x.Imp[parent], newParent, x.Imp[newParent], x.Imp)
+	return newParent
+}
+func (x *Heap) siftDown(parent, end int) {
+	for parent != -1 {
+		parent = x.siftHelper(parent, end)
 	}
 }
 
@@ -293,12 +318,15 @@ func (x *Heap) Heapify() {
 	if n <= 1 {
 		return
 	}
-
 	lastParentNode := (n / 2) - 1
 	for i := lastParentNode; i >= 0; i-- {
 		x.siftDown(i, n-1)
 	}
-	if !x.IsMaxHeap() {
+	if x.IsMin && !x.IsMinHeap() {
+		panic("Heapify() failed: NOT MIN HEAP")
+	}
+	if !x.IsMin && !x.IsMaxHeap() {
+		x.PrintTree()
 		panic("Heapify() failed: NOT MAX HEAP")
 	}
 }

@@ -21,12 +21,158 @@ func Test_ch6(t *testing.T) {
 		// {"straightRadixSort", straightRadixSortTest},
 		// {"mergeSort", mergeSortTest},
 		// {"FindMinAndMax", FindMinAndMaxTest},
-		{"KthSmallestElement", KthSmallestElementTest},
+		// {"KthSmallestElement", KthSmallestElementTest},
+		// {"computeNext", computeNextTest},
+		// {"stringMatch", stringMatchKMPTest},
+		// {"minimumEditDistance", minimumEditDistanceTest},
+		{"HW6_24_03", HW6_24_03_Test},
+		// {"RoundRobinSchedule", RoundRobinScheduleTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.f(t)
 		})
+	}
+}
+
+func RoundRobinScheduleTest(t *testing.T) {
+	tests := []struct {
+		left        int
+		right       int
+		playerCount int
+	}{
+		{1, 4, 4},
+		// {1, 8, 8},
+	}
+	for _, tt := range tests {
+		x := CH6{}
+		// x.RoundRobinSchedule(tt.left, tt.right, tt.playerCount, "Begin")
+		// x.RoundRobinScheduleGrok(tt.left, tt.right, tt.playerCount)
+		// got := x.schedule([]int{1, 2, 3, 4})
+		// got := x.scheduleCGPT([]int{1, 2, 3, 4, 5, 6, 7, 8})
+		x.scheduleRoundRobin(8)
+		// x.RoundRobinScheduleGeminiJuha(tt.playerCount)
+		t.Log(tt.left)
+		// got := x.RoundRobinCGPT([]int{1, 2, 3, 4})
+		// t.Logf("%v", got)
+	}
+}
+func HW6_24_03_Test(t *testing.T) {
+	tests := []struct {
+		name string
+		seq  []int
+		// want []int
+	}{
+		{"worst case 3", []int{1, 3, 5}},
+		{"worst case 4", []int{1, 2, 3, 7}},
+		{"worst case 5", []int{1, 2, 6, 8, 9}},
+		{"worst case 6", []int{1, 2, 7, 10, 9, 10}},
+		{"", []int{3, 2, 1}},
+		{"", []int{1, 2, 4}},
+		{"", []int{3, 4, 2, 1, 5}},
+		{"3 el. ans. is valid", []int{1, 2, 3, 7, 8, 6}},
+		{"returns a set of length n-1", []int{2, 22, 4, 5, 12, 32, 14, 25, 3, 13}}, // iters = n
+	}
+	for _, tt := range tests {
+		x := CH6{}
+		got := x.HW6_24_03_pseudo(tt.seq)
+		length, sum := len(tt.seq), ut.Sum(got)
+		if sum%length != 0 {
+			t.Errorf("FAIL got: %v, got sum: %d, sum mod %d = %d", got, sum, length, sum%length)
+		} else {
+			ratio := float64(x.iters) / float64(length)
+			t.Logf("SUCCESS got: %d, wantSum: %d, iters: %d, ratio: %.2f", got, sum, x.iters, ratio)
+		}
+	}
+}
+func MajorityTest(t *testing.T) {
+	tests := []struct {
+		name string
+		seq  []int
+		want int
+	}{
+		{"", []int{1, 2, 3}, -1},
+		{"", []int{1, 1}, 1},
+		{"", []int{1}, 1},
+		{"", []int{1, 1, 1, 2, 2, 3}, -1},
+		{"", []int{1, 1, 1, 1, 2, 2, 3}, 1},
+		{"", []int{3, 3, 3, 3, 3, 4, 4, 2, 2, 1, 1, 3, 3}, 3},
+		{"", []int{2, 1, 2, 3, 2, 1, 2, 3, 2, 1, 2, 3, 2}, 2},
+	}
+	for _, tt := range tests {
+		x := CH6{}
+		got := x.Majority(tt.seq)
+		if got != tt.want {
+			t.Errorf("FAIL got: %d, want: %d", got, tt.want)
+		}
+	}
+}
+
+func minimumEditDistanceTest(t *testing.T) {
+	ch6_notes_b := [][]int{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 2, 3, 4}, {2, 1, 2, 1, 2, 3}, {3, 2, 2, 2, 1, 2}, {4, 3, 3, 3, 2, 2}}
+	tests := []struct {
+		name  string
+		text1 string
+		text2 string
+		want  [][]int
+	}{
+		// {"juha", "AAA", "AAB"},
+		{"ch6_notes_b", "abbc", "babba", ch6_notes_b},
+	}
+	for _, tt := range tests {
+		x := CH6{}
+		got := x.minimumEditDistance(tt.text1, tt.text2)
+		if !ut.Equal2DSlices(got, tt.want) {
+			t.Errorf("FAIL got: %v, want: %v", got, tt.want)
+		}
+
+		t.Logf("GOT: %v", got)
+	}
+}
+
+func stringMatchKMPTest(t *testing.T) {
+	tests := []struct {
+		name  string
+		text1 string
+		text2 string
+		want  int
+	}{
+		// {"Manber exp.","xyxxyxyxyyxyxyxyyxyxyxx", "xyxyyxyxyxx", 13},
+		// {"ByteQuest VOD exp.","BABABABABCABABCABAB", "ABABCABAB", 6},
+	}
+	for _, tt := range tests {
+		x := CH6{}
+		got := x.stringMatchKMP(tt.text1, tt.text2)
+		if got != tt.want {
+			t.Errorf("FAIL got: %d, want: %d", got, tt.want)
+		} else {
+			t.Logf("SUCCESS got: %v", got)
+		}
+
+	}
+}
+func computeNextTest(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want []int
+	}{
+		// {"xyxyy", []int{-1, 0, 0, 1, 2}},
+		// {"xyxyyx", []int{-1, 0, 0, 1, 2, 0}},
+		// {"xyxyyxyxyxx", []int{-1, 0, 0, 1, 2, 0, 1, 2, 3, 4, 3}},
+		// {"ABABCABAB", []int{-1, 0, 0, 1, 2, 0, 1, 2, 3}},
+		{"24/hw6/5", "abaababaa", []int{-1, 0, 0, 1, 1, 2, 3, 2, 3}},
+	}
+	for _, tt := range tests {
+		x := CH6{}
+		got := x.computeKMPNext(tt.text)
+		// got := x.computeKMPNext(tt.text)
+		if !slices.Equal(got, tt.want) {
+			t.Errorf("FAIL got: %v, want: %v", got, tt.want)
+		} else {
+			t.Logf("SUCCESS got: %v, want: %v", got, tt.want)
+		}
+
 	}
 }
 

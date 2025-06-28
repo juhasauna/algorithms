@@ -6,10 +6,452 @@ package ntu
 
 import (
 	"algorithms/ut"
+	"fmt"
+	"log"
 	"math"
 	"slices"
 	"testing"
 )
+
+func (x *CH6) scheduleRoundRobin(playerCount int) {
+	if !ut.IsPowerOfTwo(playerCount) {
+		log.Fatalf("only powers of two supported: got %d", playerCount)
+	}
+
+	// Create player IDs starting from 1
+	players := make([]int, playerCount)
+	for i := range players {
+		players[i] = i + 1
+	}
+
+	x.recursiveRoundRobin(players, 1)
+}
+
+func (x *CH6) recursiveRoundRobin(players []int, startRound int) {
+	n := len(players)
+	if n == 2 {
+		// Base case: one match
+		fmt.Printf("round: %d\t%d vs %d\n", startRound, players[0], players[1])
+		return
+	}
+
+	half := n / 2
+	left := players[:half]
+	right := players[half:]
+
+	// Recursive calls for intra-group matches
+	x.recursiveRoundRobin(left, startRound)
+	x.recursiveRoundRobin(right, startRound)
+
+	// Cross matches between left and right halves
+	for i := range half {
+		for r := range half {
+			round := startRound + r + half
+			p1 := left[(i+r)%half]
+			p2 := right[i]
+			fmt.Printf("round: %d\t%d vs %d\n", round, p1, p2)
+		}
+	}
+}
+
+func (x *CH6) RoundRobinCGPTJuha(players []int) [][][2]int {
+	n := len(players)
+	if !ut.IsPowerOfTwo(n) {
+		log.Fatal("only powers of two for player count")
+	}
+	if n == 2 {
+		return [][][2]int{{{players[0], players[1]}}}
+	}
+	A := players[:n/2]
+	B := players[n/2:]
+	schedA := x.RoundRobinCGPT(A)
+	schedB := x.RoundRobinCGPT(B)
+	// Combine internal matches
+	result := make([][][2]int, 0, n-1)
+	for i := 0; i < n/2-1; i++ {
+		round := append(schedA[i], schedB[i]...)
+		result = append(result, round)
+	}
+	// Cross matches (A vs B)
+	for r := 0; r < n/2; r++ {
+		round := make([][2]int, 0, n/2)
+		for i := 0; i < n/2; i++ {
+			round = append(round, [2]int{A[i], B[(i+r)%(n/2)]})
+		}
+		result = append(result, round)
+	}
+	return result
+}
+func (x *CH6) RoundRobinCGPT(players []int) [][][2]int {
+	n := len(players)
+	if !ut.IsPowerOfTwo(n) {
+		log.Fatal("only powers of two for player count")
+	}
+	if n == 2 {
+		return [][][2]int{{{players[0], players[1]}}}
+	}
+	A := players[:n/2]
+	B := players[n/2:]
+	schedA := x.RoundRobinCGPT(A)
+	schedB := x.RoundRobinCGPT(B)
+	// Combine internal matches
+	result := make([][][2]int, 0, n-1)
+	for i := 0; i < n/2-1; i++ {
+		round := append(schedA[i], schedB[i]...)
+		result = append(result, round)
+	}
+	// Cross matches (A vs B)
+	for r := 0; r < n/2; r++ {
+		round := make([][2]int, 0, n/2)
+		for i := 0; i < n/2; i++ {
+			round = append(round, [2]int{A[i], B[(i+r)%(n/2)]})
+		}
+		result = append(result, round)
+	}
+	return result
+}
+
+// Simplified Gemini version
+func (x *CH6) RoundRobinScheduleGeminiJuha(playerCount int) {
+	// Create a slice to represent the players, numbered 1 to playerCount.
+	players := make([]int, playerCount)
+	for i := range playerCount {
+		players[i] = i + 1
+	}
+
+	if !ut.IsPowerOfTwo(playerCount) {
+		log.Fatal("only powers of two for player count")
+	}
+
+	numRounds := playerCount - 1
+	matchesPerRound := playerCount / 2
+
+	for r := range numRounds {
+		fmt.Printf("Round %d:\t", r+1)
+
+		// Create the pairings for the current round.
+		for i := range matchesPerRound {
+			p1 := players[i]
+			p2 := players[playerCount-1-i]
+
+			// Check if a player has a bye in this round.
+			// if hasBye && p1 == 0 {
+			// 	fmt.Printf("%d has a bye\t", p2)
+			// } else if hasBye && p2 == 0 {
+			// 	fmt.Printf("%d has a bye\t", p1)
+			// } else {
+			fmt.Printf("%d vs %d\t", p1, p2)
+			// }
+		}
+		fmt.Println()
+
+		// Rotate the players for the next round. Player at index 0 is fixed.
+		if playerCount > 2 {
+			// Save the last player in the list.
+			lastPlayer := players[playerCount-1]
+
+			// Shift all players from index 1 to the end one position to the right.
+			copy(players[2:], players[1:playerCount-1])
+
+			// Move the saved last player to the second position in the list.
+			players[1] = lastPlayer
+		}
+	}
+}
+
+// Here "bye" handles odd numbered groups.
+func (x *CH6) RoundRobinScheduleGeminiBye(playerCount int) {
+	// Create a slice to represent the players, numbered 1 to playerCount.
+	players := make([]int, playerCount)
+	for i := 0; i < playerCount; i++ {
+		players[i] = i + 1
+	}
+
+	// If the number of players is odd, add a dummy player (0) to represent a "bye".
+	// The player matched with the "bye" player in a round does not play.
+	hasBye := false
+	if playerCount%2 != 0 {
+		players = append(players, 0) // 0 is the placeholder for a bye
+		playerCount++
+		hasBye = true
+	}
+
+	numRounds := playerCount - 1
+	matchesPerRound := playerCount / 2
+
+	for r := 0; r < numRounds; r++ {
+		fmt.Printf("Round %d:\t", r+1)
+
+		// Create the pairings for the current round.
+		for i := range matchesPerRound {
+			p1 := players[i]
+			p2 := players[playerCount-1-i]
+
+			// Check if a player has a bye in this round.
+			if hasBye && p1 == 0 {
+				fmt.Printf("%d has a bye\t", p2)
+			} else if hasBye && p2 == 0 {
+				fmt.Printf("%d has a bye\t", p1)
+			} else {
+				fmt.Printf("%d vs %d\t", p1, p2)
+			}
+		}
+		fmt.Println()
+
+		// Rotate the players for the next round. Player at index 0 is fixed.
+		if playerCount > 2 {
+			// Save the last player in the list.
+			lastPlayer := players[playerCount-1]
+
+			// Shift all players from index 1 to the end one position to the right.
+			copy(players[2:], players[1:playerCount-1])
+
+			// Move the saved last player to the second position in the list.
+			players[1] = lastPlayer
+		}
+	}
+}
+
+// Translated from pseudocode: file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/alg2024hw6_s.pdf
+func (x *CH6) RoundRobinSchedule(left, right, playerCount int, msg string) {
+	// This does not quite work perfectly. It assigns multiple matches for the same player on the same round.
+	nextCount := playerCount / 2
+	med := (left + right) / 2
+	// fmt.Printf("%s\t %d\t%d\t%d \tplayerCount: %d\n", msg, left, med, right, playerCount)
+	if right-left == 1 {
+		fmt.Printf("Round 1: %d vs %d\t", left, right)
+		return
+	} else {
+		x.RoundRobinSchedule(left, med, nextCount, "1.rec.")
+		x.RoundRobinSchedule(med+1, right, nextCount, "2.rec.")
+	}
+	fmt.Println()
+	for r := nextCount; r < playerCount; r++ {
+		for shift := range med - left + 1 {
+			p1 := left + shift
+			p2 := med + 1 + (r % nextCount)
+			fmt.Printf("Round %d: %d vs %d\t", r, p1, p2)
+		}
+		fmt.Println()
+	}
+}
+
+func (x *CH6) RoundRobinScheduleGrok(left, right, playerCount int) {
+	nextCount := playerCount / 2
+	med := (left + right) / 2
+	if right-left == 1 {
+		fmt.Printf("Round 1: %d vs %d\t", left, right)
+		return
+	} else {
+		x.RoundRobinScheduleGrok(left, med, nextCount)
+		x.RoundRobinScheduleGrok(med+1, right, nextCount)
+	}
+	fmt.Println()
+	for r := nextCount; r < playerCount; r++ {
+		for shift := range med - left + 1 {
+			p1 := left + shift
+			p2 := med + 1 + (shift+r)%nextCount
+			fmt.Printf("Round %d: %d vs %d\t", r, p1, p2)
+		}
+		fmt.Println()
+	}
+}
+
+// file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/alg2024hw6_s.pdf
+// FindSubset - Subsetsum
+func (x *CH6) HW6_24_03_pseudo(set []int) []int {
+	sum := 0
+	length := len(set)
+	remSet := make([]int, length) // Elements are remainders. The possible remainders are [0, n). The zero index is not used!
+	for k, v := range set {
+		sum += v
+		rem := sum % length
+		x.iters++
+		if rem == 0 {
+			return set[:k+1]
+		}
+		fmt.Printf("subSet[rem]: %d, rem: %d, k: %d\t\t%v\n", remSet[rem], rem, k, remSet)
+		if remSet[rem] != 0 { // Remainders of S_i and S_k are the same => take S_i \ S_k = Y. Sum of Y ≡ 0 (mod n)
+			i := remSet[rem] + 1
+			set_k_substract_set_i := set[i : k+1]
+			return set_k_substract_set_i
+		}
+		remSet[rem] = k
+	}
+	temp := []int{}
+	for i, v := range remSet {
+		if v != 0 {
+			temp = append(temp, set[i])
+		}
+	}
+	return temp
+}
+func (x *CH6) HW6_24_03_bruteforce_WRONG(set []int) []int {
+	length := len(set)
+	for i, v := range set {
+		w := v % length
+		if w == 0 {
+			return []int{v}
+		}
+		for j := i + 1; j < length; j++ {
+			if (w+set[j])%length == 0 {
+				return []int{v, set[j]}
+			}
+		}
+	}
+	log.Fatalf("HW6_24_03_bruteforce is wrong (or input %v is wrong)", set)
+	return []int{}
+}
+
+// Find the majority in input if there is one. θ(n) time. Worst case 2n-2 comparisons.
+func (x *CH6) Majority(seq []int) int {
+
+	length := len(seq)
+	if length < 1 {
+		log.Fatalln("Majority: invalid input")
+	}
+	for _, v := range seq {
+		if v < 0 {
+			log.Fatalln("Majority: invalid input")
+		}
+	}
+
+	candidate := seq[0]
+	mult := 1
+	for i := 1; i < length; i++ {
+		if mult == 0 {
+			candidate = seq[i]
+			mult = 1
+		} else if candidate == seq[i] {
+			mult++
+		} else {
+			mult--
+		}
+	}
+	count := 0
+	if mult == 0 {
+		return -1
+	}
+	for i := range length {
+		if seq[i] == candidate {
+			count++
+		}
+	}
+	if count > length/2 {
+		return candidate
+	}
+	return -1
+}
+
+func (x *CH6) minimumEditDistance(text1, text2 string) [][]int {
+	rows, cols := len(text1)+1, len(text2)+1
+	costMatrix := make([][]int, rows)
+	for i := range costMatrix {
+		costMatrix[i] = make([]int, cols)
+	}
+	for i := range rows {
+		costMatrix[i][0] = i
+	}
+	for j := 1; j < cols; j++ {
+		costMatrix[0][j] = j
+	}
+
+	for i := 1; i < rows; i++ {
+		for j := 1; j < cols; j++ {
+			x := costMatrix[i-1][j] + 1
+			y := costMatrix[i][j-1] + 1
+			z := costMatrix[i-1][j-1]
+			if text1[i-1] != text2[j-1] {
+				z++
+			}
+			costMatrix[i][j] = ut.Min(x, y, z)
+		}
+	}
+
+	return costMatrix
+}
+
+func (x CH6) stringMatchKMP(text1, text2 string) int {
+	// The book uses 1 based index which makes this much harder than it needs to be.
+	next := x.computeKMPNext(text2)
+	len1, len2 := len(text1), len(text2)
+	result := 0
+	i, j := 0, 1
+	for result == 0 && i < len1 {
+		if text2[j] == text1[i] {
+			j++
+			i++
+		} else {
+			j = next[j-1] + 1
+			if j == 0 {
+				j = 1
+				i++
+			}
+		}
+		if j == len2 {
+			result = i - (len2 - 1)
+		}
+	}
+	return result
+}
+
+func (x CH6) computeKMPNext(text string) []int {
+	length := len(text)
+	fmt.Println("len: ", length, "text: ", text)
+	next := []int{-1, 0}
+	for i := 2; i < length; i++ {
+		j := next[i-1] + 1
+		fmt.Println(i, j, next, string(text[i-1]), string(text[j]))
+		for text[i-1] != text[j-1] {
+			fmt.Printf("j=%d\ttext[i]=%c text[j]=%c\n", j, text[i-1], text[j])
+			j = next[j-1] + 1
+			if j == 0 {
+				break
+			}
+		}
+		next = append(next, j)
+	}
+	return next
+}
+
+func (x CH6) computeKMPNextGemini(pattern string) []int {
+	length := len(pattern)
+	if length == 0 {
+		return []int{}
+	}
+
+	// lps is the array that will hold the Longest Proper Prefix suffix values for the pattern.
+	lps := make([]int, length)
+	lps[0] = 0 // lps[0] is always 0.
+
+	// 'currentLPSLength' keeps track of the length of the previous longest prefix suffix.
+	currentLPSLength := 0
+
+	// The loop calculates lps[i] for i from 1 to length-1.
+	i := 1
+	for i < length {
+		// Case 1: The characters match.
+		// We found a longer prefix that is also a suffix.
+		if pattern[i] == pattern[currentLPSLength] {
+			currentLPSLength++
+			lps[i] = currentLPSLength
+			i++
+		} else { // Case 2: The characters do not match.
+			if currentLPSLength != 0 {
+				// This is the key step of the KMP algorithm. We do not restart from scratch.
+				// We fall back to the LPS value of the previous state, effectively trying a shorter prefix.
+				// We do NOT increment 'i' here, as we need to re-evaluate pattern[i] against the new, shorter prefix.
+				currentLPSLength = lps[currentLPSLength-1]
+			} else {
+				// If currentLPSLength is 0, it means we couldn't find a shorter prefix to match.
+				// We set lps[i] to 0 and move to the next character in the pattern.
+				lps[i] = 0
+				i++
+			}
+		}
+	}
+	return lps
+}
 
 // FindMinAndMax() find min and max in [1.5*n-2]-comparisons. Using a the naive approach takes 2*n-3 comparisons.
 func (x *CH6) FindMinAndMax(seq []int) (int, int) {

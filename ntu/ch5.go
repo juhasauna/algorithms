@@ -251,8 +251,6 @@ func (x *NTU) mergeSkylines(sk1, sk2 []int) {
 
 	x.log("%d %d", sk1[0], sk1[1])
 	x.mergeSk1(sk1[1], sk2[1], sk1[2:], sk1[2:])
-	return
-
 }
 
 func (x *NTU) mergeSk1(ya, yb int, sk1, sk2 []int) {

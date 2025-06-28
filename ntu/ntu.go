@@ -8,6 +8,49 @@ import (
 	"testing"
 )
 
+type DSU struct {
+	Parent int
+	Size   int
+}
+
+type UnionFind struct {
+	// See file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/slides/ch4_notes.pdf
+	sets []DSU
+}
+
+func (x *UnionFind) UnionFindInit(seq []int) {
+	for _, v := range seq {
+		if v < 0 {
+			log.Fatal("UnionFindInit: negative sequence values not supported")
+		}
+		x.sets = append(x.sets, DSU{Size: 1, Parent: -1})
+	}
+}
+
+func (x UnionFind) Find(a int) int {
+	if len(x.sets) <= a {
+		log.Fatalf("UnionFind.Find: index %d not in %v", a, x.sets)
+	}
+	if x.sets[a].Parent != -1 {
+		x.sets[a].Parent = x.Find(x.sets[a].Parent)
+		return x.sets[a].Parent
+	}
+	return a
+}
+func (x *UnionFind) Union(a, b int) {
+	a = x.Find(a)
+	b = x.Find(b)
+	if a != b {
+		if x.sets[a].Size > x.sets[b].Size {
+			x.sets[b].Parent = a
+			x.sets[a].Size += x.sets[b].Size
+		} else {
+			x.sets[a].Parent = b
+			x.sets[b].Size += x.sets[a].Size
+		}
+	}
+}
+
 // Ex.1 from file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/hw4.pdf
 // Given a sorted array A of n integers and an integer x, determine whether A contains two integers whose sum is exactly x.
 func (x NTU) hw24_04_01_polyTime(arr []int, targetSum int) bool {
