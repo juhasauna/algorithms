@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// Disjoint Set Union (DSU), is another name for the Union-Find data structure.
 type DSU struct {
 	Parent int
 	Size   int
@@ -27,7 +28,7 @@ func (x *UnionFind) UnionFindInit(seq []int) {
 	}
 }
 
-func (x UnionFind) Find(a int) int {
+func (x *UnionFind) Find(a int) int {
 	if len(x.sets) <= a {
 		log.Fatalf("UnionFind.Find: index %d not in %v", a, x.sets)
 	}

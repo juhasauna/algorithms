@@ -45,10 +45,13 @@ type Tuple struct {
 
 func UnionFindTest(t *testing.T) {
 	tests := []struct {
+		name  string
 		seq   []int
 		union []Tuple
 	}{
-		{[]int{1, 2, 3, 4, 5}, []Tuple{{1, 2}, {3, 4}, {0, 1}, {4, 1}}},
+		// {"", []int{1, 2, 3, 4, 5}, []Tuple{{1, 2}, {3, 4}, {0, 1}, {4, 1}}},
+		{"23HW03", []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, []Tuple{{1, 2}, {3, 4}, {5, 6}, {7, 8}, {9, 10}, {1, 4}, {6, 7}, {4, 10}, {10, 8}}},
+		// {"23HW03", []int{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'}, []Tuple{{'A', 'B'}, {'C', 'D'}, {'E', 'F'}, {'G', 'H'}, {'I', 'J'}, {'A', 'D'}, {'F', 'G'}, {'D', 'J'}, {'J', 'H'}}},
 	}
 	for _, tt := range tests {
 		x := UnionFind{}
