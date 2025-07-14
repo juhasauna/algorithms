@@ -2,8 +2,11 @@ package ut
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 	"slices"
+	"sort"
+	"strings"
 	"time"
 
 	"golang.org/x/exp/constraints"
@@ -165,4 +168,57 @@ func AllAppearEvenTimes(nums []int) bool {
 		}
 	}
 	return true
+}
+
+type Tuple [2]string
+
+func PrintMapAsCode[K comparable, V any](m map[K]V) {
+	var sb strings.Builder
+
+	mapType := reflect.TypeOf(m)
+	sb.WriteString(fmt.Sprintf("map[%s]%s{", mapType.Key(), mapType.Elem()))
+
+	// Collect and sort keys (as strings) to ensure deterministic output
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	// For known types like string or int, we can sort directly
+	switch any(keys[0]).(type) {
+	case string:
+		sort.Slice(keys, func(i, j int) bool {
+			return any(keys[i]).(string) < any(keys[j]).(string)
+		})
+	case int:
+		sort.Slice(keys, func(i, j int) bool {
+			return any(keys[i]).(int) < any(keys[j]).(int)
+		})
+	}
+
+	for i, k := range keys {
+		// Format keys as string literals if they're strings
+		var keyStr string
+		if ks, ok := any(k).(string); ok {
+			keyStr = fmt.Sprintf("%q", ks)
+		} else {
+			keyStr = fmt.Sprintf("%v", k)
+		}
+
+		v := m[k]
+		sb.WriteString(fmt.Sprintf("%s: %v", keyStr, v))
+		if i < len(keys)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString("}")
+	fmt.Println(sb.String())
+}
+
+func ShuffleSlice[T any](s []T) {
+	// r := rand.New(rand.NewSource(42))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r.Shuffle(len(s), func(i, j int) {
+		s[i], s[j] = s[j], s[i]
+	})
 }

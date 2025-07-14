@@ -16,6 +16,7 @@ type graph struct {
 	circuit []string
 }
 
+// Fleury's is for  finding an Euler circuit or path in a graph.
 func (g *graph) fleurysAlg() {
 	edge := g.getNotBridge()
 	if edge == nil {

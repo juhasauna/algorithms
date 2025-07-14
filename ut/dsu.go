@@ -126,10 +126,10 @@ func (dsu *DSU) PrintTree(name string) {
 			children[node.Ancestor] = append(children[node.Ancestor], i)
 		}
 	}
-	fmt.Printf("Tree of %s. ", name)
+	fmt.Printf("%s, bal: %t, pathCmprs: %t. ", name, dsu.Balanced, dsu.UsePathCompression)
 	// Step 2: Print each tree starting from its root.
 	for _, root := range roots {
-		fmt.Printf("Set with root %d (Size: %d):\n", root, dsu.Nodes[root].Size)
+		fmt.Printf("Root %d (Size: %d):\n", root, dsu.Nodes[root].Size)
 		dsu.printNode(root, "", true, children)
 		fmt.Println()
 	}
@@ -146,7 +146,11 @@ func (dsu *DSU) printNode(nodeID int, prefix string, isLast bool, children [][]i
 		fmt.Print("├── ")
 		prefix += "│   "
 	}
-	fmt.Printf("%d\n", nodeID)
+	if nodeID >= 'A' {
+		fmt.Printf("%c\n", nodeID)
+	} else {
+		fmt.Printf("%d\n", nodeID)
+	}
 
 	// Recursively print the children.
 	nodeChildren := children[nodeID]
