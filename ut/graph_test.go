@@ -163,8 +163,12 @@ func DijkstrasTest(t *testing.T) {
 		{"ManberFig7.18(p.224)", "v", map[string]int{"a": 1, "b": 5, "c": 3, "d": 7, "e": 8, "f": 12, "g": 11, "h": 9, "v": 0}},
 		{"YT_D.Sutantyo 8.1", "1", map[string]int{"1": 0, "2": 4, "3": 13, "4": 8, "5": 7}},
 		{"YT_D.Sutantyo 8.1", "4", map[string]int{"2": 7, "3": 5, "4": 0, "5": 10}},
-		// {"YT_D.Sutantyo 8.1", "1", []DijkstraNode{{Name: "1", Weight: 0}, {Name: "2", Weight: 4}, {Name: "5", Weight: 7}, {Name: "4", Weight: 8}, {Name: "3", Weight: 13}}},
-		// {"YT_D.Sutantyo 8.1", "4", []DijkstraNode{{Name: "4", Weight: 0}, {Name: "3", Weight: 5}, {Name: "2", Weight: 7}, {Name: "5", Weight: 10}}},
+		{"YT_D.Sutantyo 8.4", "5", map[string]int{"1": 7, "2": 11, "3": 9, "4": 2, "5": 0, "6": 3}},
+		{"YT_D.Sutantyo 8.4", "1", map[string]int{"1": 0, "2": 4, "3": 2, "4": 2, "6": 3}},
+		{"YT_D.Sutantyo 8.4", "3", map[string]int{"2": 2, "3": 0, "4": 3, "6": 4}},
+		{"Grok1", "a", map[string]int{"a": 0, "b": 3, "c": 2}},
+		{"Claude1", "a", map[string]int{"a": 0, "b": 3, "c": 1}},
+		{"Claude2", "a", map[string]int{"a": 0, "b": 1, "c": 2, "d": 3, "e": 3}},
 	}
 	for _, tt := range tests {
 		var g Graph
@@ -174,7 +178,7 @@ func DijkstrasTest(t *testing.T) {
 			return
 		}
 		got := g.DijkstrasNTUPseudo(tt.startNode)
-		// PrintMapAsCode(got)
+		PrintMapAsCode(got)
 		if !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("FAIL got/want\n%v\n%v", got, tt.want)
 		}
@@ -182,24 +186,8 @@ func DijkstrasTest(t *testing.T) {
 		if !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("FAIL (DPSSSP) got/want\n%v\n%v", got, tt.want)
 		}
-		// oldGotToWant := []DijkstraNode{}
-		// for key, weight := range got {
-		// 	if weight != INF {
-		// 		oldGotToWant = append(oldGotToWant, DijkstraNode{Name: key, Weight: weight})
-		// 	}
-		// }
-		// slices.SortFunc(oldGotToWant, func(a, b DijkstraNode) int {
-		// 	if a.Weight > b.Weight {
-		// 		return 1
-		// 	} else if a.Weight != b.Weight {
-		// 		return -1
-		// 	} else if a.Name < b.Name {
-		// 		return 1
-		// 	}
-		// 	return -1
 
-		// })
-
+		// got = g.DijkstrasSimpleButNotOptimal(tt.startNode)
 		got = g.Dijkstras(tt.startNode)
 		if !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("FAIL %+v != %+v", got, tt.want)
@@ -341,6 +329,14 @@ func initMyGraphs() {
 
 	name = "ManberFig7.21(p.229)"
 	m[name] = NewGraph(name, []Edge{{"a", "c", 2}, {"v", "a", 1}, {"v", "b", 6}, {"v", "d", 9}, {"b", "e", 3}, {"c", "d", 4}, {"d", "e", 7}, {"c", "f", 10}, {"d", "g", 12}, {"e", "h", 5}, {"g", "f", 13}, {"h", "g", 11}})
+
+	name = "Grok1"
+	m[name] = NewGraph(name, []Edge{{"a", "b", 4}, {"a", "c", 2}, {"c", "b", 1}})
+
+	name = "Claude1"
+	m[name] = NewGraph(name, []Edge{{"a", "b", 5}, {"a", "c", 1}, {"c", "b", 2}})
+	name = "Claude2"
+	m[name] = NewGraph(name, []Edge{{"a", "b", 1}, {"a", "c", 2}, {"a", "d", 3}, {"b", "e", 10}, {"c", "e", 1}, {"d", "e", 1}})
 
 	name = "ch7_slides_scc" // file:///C:\Users\FIJUSAU\OneDrive%20-%20ABB\courses\Vaihto\TaiwanTech\algorithms_2024_material\slides\ch7_slides_scc.pptx
 	m[name] = NewGraph(name, []Tuple{{"a", "b"}, {"a", "h"},

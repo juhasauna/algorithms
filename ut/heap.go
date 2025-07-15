@@ -169,7 +169,7 @@ func (x *Heap) Insert(value int) {
 		pi := parent - 1
 		ci := child - 1
 		if compare(pi, ci) {
-			x.Imp[pi], x.Imp[ci] = x.Imp[ci], x.Imp[pi]
+			x.Swap(pi, ci)
 			child = parent
 			parent = parent / 2
 		} else {
@@ -338,8 +338,9 @@ type DijkstraNode struct {
 }
 
 type DijkstraHeap struct {
-	Imp   []*DijkstraNode
-	iters int
+	Imp         []*DijkstraNode
+	iters       int
+	nodeIndexes map[string]int
 }
 
 func (x *DijkstraHeap) Heapify() {
@@ -359,10 +360,6 @@ func (x *DijkstraHeap) Heapify() {
 }
 
 func (x *DijkstraHeap) siftHelper(parent, end int) int {
-	compare := func(a, b int) bool {
-		c := x.Imp[a].Weight >= x.Imp[b].Weight
-		return c
-	}
 	leftChild := x.LeftChild(parent)
 	if leftChild > end {
 		return -1
@@ -370,24 +367,32 @@ func (x *DijkstraHeap) siftHelper(parent, end int) int {
 	newParent := leftChild
 	rightChild := leftChild + 1
 	if rightChild <= end {
-		if compare(leftChild, rightChild) {
+		if x.Imp[leftChild].Weight >= x.Imp[rightChild].Weight {
 			newParent = rightChild
 		}
 	}
-	if compare(newParent, parent) {
-		return -1
+	if x.Imp[parent].Weight > x.Imp[newParent].Weight {
+		x.Swap(parent, newParent)
 	}
-	x.Swap(parent, newParent)
-	// x.Logf("parent: %d/%d, swap: %d/%d, heap: %v", parent, x.Imp[parent], newParent, x.Imp[newParent], x.Imp)
+
 	return newParent
 }
-func (x *DijkstraHeap) siftDown(parent, end int) {
-	for parent != -1 {
-		parent = x.siftHelper(parent, end)
+func (h *DijkstraHeap) siftDown(parent, end int) {
+	for parent != -1 && !h.IsMinHeap() {
+		parent = h.siftHelper(parent, end)
 	}
 }
-func (x *DijkstraHeap) Swap(i, j int) {
-	x.Imp[i], x.Imp[j] = x.Imp[j], x.Imp[i]
+func (h *DijkstraHeap) ImpString() string {
+	s := ""
+	for _, v := range h.Imp {
+		s += fmt.Sprintf("%s/%d _ ", v.Name, v.Weight)
+	}
+	return s
+}
+func (h *DijkstraHeap) Swap(i, j int) {
+	h.nodeIndexes[h.Imp[i].Name], h.nodeIndexes[h.Imp[j].Name] = j, i
+	// fmt.Printf("SWAP: %d %d, %v, nodeIndexes: %v\n", i, j, h.ImpString(), h.nodeIndexes)
+	h.Imp[i], h.Imp[j] = h.Imp[j], h.Imp[i]
 }
 func (x *DijkstraHeap) Size() int {
 	return len(x.Imp)
@@ -396,22 +401,6 @@ func (x *DijkstraHeap) IsEmpty() bool {
 	return len(x.Imp) == 0
 }
 
-func (x DijkstraHeap) IsMaxHeap() bool {
-	n := x.Size()
-	for i := 0; i <= (n/2)-1; i++ {
-		leftChild := x.LeftChild(i)
-		rightChild := x.RightChild(i)
-		if leftChild < n && x.Imp[leftChild].Weight > x.Imp[i].Weight {
-			fmt.Printf("Violation: parent x.Imp[%d](%+v) < left child x.Imp[%d](%+v)\n", i, x.Imp[i], leftChild, x.Imp[leftChild])
-			return false
-		}
-		if rightChild < n && x.Imp[rightChild].Weight > x.Imp[i].Weight {
-			fmt.Printf("Violation: parent x.Imp[%d](%+v) < right child x.Imp[%d](%+v)\n", i, x.Imp[i], rightChild, x.Imp[rightChild])
-			return false
-		}
-	}
-	return true
-}
 func (x DijkstraHeap) IsMinHeap() bool {
 	n := x.Size()
 	for i := 0; i <= (n/2)-1; i++ {
@@ -428,9 +417,7 @@ func (x DijkstraHeap) IsMinHeap() bool {
 	}
 	return true
 }
-func (x DijkstraHeap) NodeParent(i int) int {
-	return (i - 1) / 2
-}
+
 func (x DijkstraHeap) LeftChild(i int) int {
 	return 2*i + 1
 }
@@ -438,60 +425,77 @@ func (x DijkstraHeap) RightChild(i int) int {
 	return 2*i + 2
 }
 
-func (x *DijkstraHeap) Extract() *DijkstraNode {
-	if x.Size() == 0 {
-		log.Fatal("cannot Extract() from empty heap")
-	}
-	head := x.Head()
+func (h *DijkstraHeap) Extract() *DijkstraNode {
+	head := h.Head()
+	// fmt.Printf("BEF Exctract: %s, head: %s/%d\n", h.ImpString(), head.Name, head.Weight)
 
-	end := x.Size() - 1
-	x.Imp[0] = x.Imp[end]
-	x.Imp = x.Imp[:end]
+	end := h.Size() - 1
+	h.Swap(0, end)
+	delete(h.nodeIndexes, head.Name)
+	h.Imp = h.Imp[:end]
 	end--
-	// x.Logf("start Extract: head: %d, Imp: %v\n", head, x.Imp)
 	parent := 0
 
 	for parent != -1 {
-		parent = x.siftHelper(parent, end)
+		parent = h.siftHelper(parent, end)
 	}
-	if !x.IsMinHeap() {
+	// fmt.Printf("AFT Exctract: %s, nodeIndexes: %+v\n", h.ImpString(), h.nodeIndexes)
+	if !h.IsMinHeap() {
 		panic("DijkstraHeap: not a min heap.")
 	}
 	return head
 }
 
-func (x *DijkstraHeap) Head() *DijkstraNode {
-	if x.Size() == 0 {
+func (h *DijkstraHeap) Head() *DijkstraNode {
+	if h.Size() == 0 {
 		log.Fatal("Cannot Head() from empty heap")
 		return nil
 	}
-	return x.Imp[0]
+	return h.Imp[0]
 }
 func NewDijkstraHeap(seq []*DijkstraNode) DijkstraHeap {
-	h := DijkstraHeap{Imp: seq}
+	nodeIndexes := make(map[string]int)
+	for i, node := range seq {
+		nodeIndexes[node.Name] = i
+	}
+	h := DijkstraHeap{Imp: seq, nodeIndexes: nodeIndexes}
+	fmt.Printf("BEF Heapify: %v\n", h.nodeIndexes)
 	h.Heapify()
+	fmt.Printf("AFT Heapify: %v\n", h.nodeIndexes)
+	if !h.IsMinHeap() {
+		panic("NewDijkstraHeap not a min heap")
+	}
 	return h
 }
 
-func (x *DijkstraHeap) Insert(node *DijkstraNode) (int, int) {
-	child := x.Size() + 1
-	x.Imp = append(x.Imp, node)
-	parent := child / 2
-	if child == 1 {
-		return 0, 0 // Insert to an empty heap.
+func (h *DijkstraHeap) DecreaseKey(node *DijkstraNode) {
+	index := h.nodeIndexes[node.Name]
+	h.Imp[index].Weight = node.Weight
+	h.HeapifyUp(index)
+}
+
+func (h *DijkstraHeap) GetNode(name string) *DijkstraNode {
+	if index, ok := h.nodeIndexes[name]; ok {
+		return h.Imp[index]
 	}
-	for {
-		pi := parent - 1
-		ci := child - 1
-		if x.Imp[pi].Weight > x.Imp[ci].Weight {
-			x.Imp[pi], x.Imp[ci] = x.Imp[ci], x.Imp[pi]
-			child = parent
-			parent = parent / 2
-		} else {
-			return pi, ci
+	return nil
+}
+func (h *DijkstraHeap) Insert(node *DijkstraNode) {
+	index := h.Size()
+	h.Imp = append(h.Imp, node)
+	h.nodeIndexes[node.Name] = index
+
+	fmt.Printf("Insert: Imp: %s, node: %+v, index: %d\n", h.ImpString(), *node, index)
+	h.HeapifyUp(index)
+}
+
+func (h *DijkstraHeap) HeapifyUp(index int) {
+	for index > 0 {
+		parent := (index - 1) / 2
+		if h.Imp[parent].Weight <= h.Imp[index].Weight {
+			return
 		}
-		if parent == 0 {
-			return pi, ci
-		}
+		h.Swap(parent, index)
+		index = parent
 	}
 }

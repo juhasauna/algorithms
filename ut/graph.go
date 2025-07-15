@@ -364,11 +364,37 @@ func (x Graph) DPSSSP(startNode string) map[string]int {
 // See DijkstrasNTUPseudo for a more accurate duplication of the NTU-pseudo code.
 // AKA. Single Source Shortest Paths. Dijkstras assumes no negative weights. When the graph is not acyclic, there is no such thing as a topological order.
 func (g Graph) Dijkstras(startNode string) map[string]int {
-	var minHeap DijkstraHeap
-	parent, child := minHeap.Insert(&DijkstraNode{Name: startNode, Weight: 0})
-	if parent != 0 && child != 0 {
-		log.Fatal("invalid Dijkstra minHeap insert")
+	// The problem with this implementation is that we're inserting duplicate values to the heap. It still works since Extract() always removes the min. But for an efficient implementation we should be updating the heap element if it already exists. The method for this is commonly called 'DecreaseKey()'
+	minHeap := NewDijkstraHeap([]*DijkstraNode{{Name: startNode, Weight: 0}})
+	results := make(map[string]int)
+
+	for !minHeap.IsEmpty() {
+		w := minHeap.Extract()
+		if _, ok := results[w.Name]; !ok {
+			fmt.Printf("Extracted: %+v\n", *w)
+			results[w.Name] = w.Weight
+		}
+		fmt.Printf("Extracted: %+v\n", *w)
+		for _, e := range g.EdgesFrom(w.Name) {
+			if _, visited := results[e.to]; !visited {
+				fmt.Printf("inserting %s: %d\n", e.to, w.Weight+e.weight)
+				kid := &DijkstraNode{Name: e.to, Weight: w.Weight + e.weight}
+				if existingNode := minHeap.GetNode(e.to); existingNode != nil {
+					if existingNode.Weight > kid.Weight {
+						minHeap.DecreaseKey(kid)
+					}
+				} else {
+					minHeap.Insert(kid)
+				}
+			}
+		}
 	}
+	fmt.Printf("DIJKSTRAS RESULT %+v\n", results)
+	return results
+}
+func (g Graph) DijkstrasSimpleButNotOptimal(startNode string) map[string]int {
+	// The problem with this implementation is that we're inserting duplicate values to the heap. It still works since Extract() always removes the min. But for an efficient implementation we should be updating the heap element if it already exists. The method for this is commonly called 'DecreaseKey()'
+	minHeap := NewDijkstraHeap([]*DijkstraNode{{Name: startNode, Weight: 0}})
 	results := make(map[string]int) // This also functions as "marks".
 	for !minHeap.IsEmpty() {
 		w := minHeap.Extract()
@@ -376,16 +402,14 @@ func (g Graph) Dijkstras(startNode string) map[string]int {
 			results[w.Name] = w.Weight
 		}
 		for _, e := range g.EdgesFrom(w.Name) {
-			if _, ok := results[e.to]; !ok {
+			if _, visited := results[e.to]; !visited {
+				// fmt.Printf("inserting %s: %d\n", e.to, w.Weight+e.weight)
 				kid := &DijkstraNode{Name: e.to, Weight: w.Weight + e.weight}
-				parentIndex, kidIndex := minHeap.Insert(kid)
-				candidateWeight := minHeap.Imp[parentIndex].Weight + e.weight
-				if candidateWeight < kid.Weight {
-					minHeap.Imp[kidIndex].Weight = candidateWeight
-				}
+				minHeap.Insert(kid)
 			}
 		}
 	}
+	fmt.Printf("DIJKSTRAS RESULT %+v\n", results)
 	return results
 }
 
