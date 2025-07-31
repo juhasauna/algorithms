@@ -1,7 +1,10 @@
-// Longest increasing sub-sequence
 package oneoffs
 
-func liss(x []int) (result []int) {
+import "fmt"
+
+// Longest increasing sub-sequence
+func liss(x []int) []int {
+	result := []int{}
 	lst := listOfIss(x)
 	for i := len(lst) - 1; i >= 0; i-- {
 		current := lst[i]
@@ -24,6 +27,8 @@ func liss(x []int) (result []int) {
 			result = v.lst
 		}
 	}
+	fmt.Println(result)
+	fmt.Println(len(result))
 	return result
 }
 

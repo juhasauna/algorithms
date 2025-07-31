@@ -23,11 +23,11 @@ func FindEulerianCircuitPseudoTest(t *testing.T) {
 	tests := []struct {
 		graph *ut.EulerianGraph
 	}{
-		// {ut.GetEulerianGraphK3()},
-		// {ut.GetEulerianGraphK5()},
-		// {ut.GetEulerianGraphK5_a()},
-		// {ut.GetEulerianGraphBowtie()},
-		//
+		{ut.GetEulerianGraphK3()},
+		{ut.GetEulerianGraphK5()},
+		{ut.GetEulerianGraphK5_a()},
+		{ut.GetEulerianGraphBowtie()},
+
 		// {ut.GetNotEulerianGraphK5_a()},
 	}
 	for _, tt := range tests {

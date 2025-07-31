@@ -8,6 +8,7 @@ import (
 	"math"
 	"slices"
 	"sort"
+	"time"
 )
 
 func intUnion(a, b []int) []int { // Ex 1
@@ -201,7 +202,39 @@ func closestPairOfPointsBruteForce(arr [][2]float64) [2][2]float64 {
 	return minPair
 }
 
-func fibonacciIterative2(n int) int {
+type fibonacci struct {
+	iters     int
+	startTime time.Time
+}
+
+func (x *fibonacci) timeTrack(name string) {
+	elapsed := time.Since(x.startTime)
+	fmt.Printf("%s took %s\n", name, elapsed)
+}
+
+func (x *fibonacci) fastDoubling(n int) int {
+	// O(log n)
+	var recurse func(int) (int, int)
+	recurse = func(k int) (int, int) {
+		x.iters++
+		if k == 0 {
+			return 0, 1
+		}
+		a, b := recurse(k / 2)
+		c := a * (2*b - a)
+		d := a*a + b*b
+		if k%2 == 0 {
+			return c, d
+		}
+		return d, c + d
+	}
+
+	result, _ := recurse(n)
+	return result
+
+}
+
+func (f *fibonacci) iterative2(n int) int {
 	if n < 1 {
 		return 0
 	}
@@ -215,33 +248,60 @@ func fibonacciIterative2(n int) int {
 	return y
 }
 
-func fibonacciIterative(k int) int {
+func (x *fibonacci) iterative(k int) int {
 	results := []int{0}
 	for i := 1; i <= k; i++ {
-		fmt.Printf("%v\n", results)
+		x.iters++
+		// fmt.Printf("%v\n", results)
 		if i < 3 {
 			results = append(results, 1)
 		} else {
-			v := results[i-2] + results[i-3]
+			v := results[i-1] + results[i-2]
 			results = append(results, v)
 		}
 	}
+
 	return results[k]
 }
-func fibonacci(k int) int {
+func (x *fibonacci) simple(k int) int {
+	x.iters++
 	if k < 1 {
 		return 0
 	}
 	if k == 1 {
 		return 1
 	}
-	return fibonacci(k-1) + fibonacci(k-2)
+	return x.simple(k-1) + x.simple(k-2)
+}
+func (x *fibonacci) dynamicProgramming(k int) int {
+	if k <= 0 {
+		return 0
+	}
+	if k == 1 {
+		return 1
+	}
+	memo := make([]int, k)
+	memo[0] = 0
+	memo[1] = 1
+	var recurse func(l int) int
+	recurse = func(l int) int {
+		x.iters++
+		if l == 1 {
+			return 1
+		}
+		if memo[l-1] == 0 {
+			memo[l-1] = recurse(l - 1)
+		}
+		return memo[l-1] + memo[l-2]
+
+	}
+	return recurse(k)
 }
 
-func fibonacciUpTo(k int) []int {
+func (x *fibonacci) upTo(k int) []int {
 	result := []int{}
 	for i := 0; i <= k; i++ {
-		result = append(result, fibonacci(i))
+		result = append(result, x.simple(i))
 	}
 	return result
 }

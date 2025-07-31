@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 )
 
 func Test_appendixC(t *testing.T) {
@@ -17,12 +18,12 @@ func Test_appendixC(t *testing.T) {
 		// {"combinationsUpToTest", combinationsTest},
 		// {"doTruthTable", doTruthTableTest},
 		// {"equivalent", equivalentTest},
-		// {"fibonacciIterative", fibonacciIterativeTest},
+		{"fibonacci", fibonacciTest},
 		// {"fibonacciUpTo", fibonacciUpToTest},
 		// {"getlogicalExpressionTypeTest", getlogicalExpressionTypeTest},
 		// {"intDifference", intDifferenceTest},
 		// {"intIntersection", intIntersectionTest},
-		{"intUnion", intUnionTest},
+		// {"intUnion", intUnionTest},
 		// {"permutations", permutationsTest},
 		// {"permutationsUpToTest", permutationsUpToTest},
 		// {"permutationFunc_disjointCycleProduct", permutationFunc_disjointCycleProductTest},
@@ -82,24 +83,61 @@ func permutationFunc_toTranspositionProductTest(t *testing.T) {
 	}
 }
 
-func fibonacciIterativeTest(name string, t *testing.T) {
+func fibonacciTest(t *testing.T) {
 	tests := []struct {
 		n      int
 		expect int
 	}{
-		{0, 0},
-		{1, 1},
-		{2, 1},
-		{3, 2},
-		{6, 8},
-		{12, 144},
+		// {0, 0},
+		// {1, 1},
+		// {2, 1},
+		// {3, 2},
+		// {6, 8},
+		// {12, 144},
+		// {13, 233},
+		// {14, 377},
+		// {15, 610},
+		// {20, 6765},
+		// {30, 832040},
+		// {40, 102334155},
+		// {50, 12586269025}, // Don't run simple. It takes 1 minute.
+		{1000, 817770325994397771}, // Don't run simple.
 	}
-	for i, tt := range tests {
-		got := fibonacciIterative(tt.n)
+	for _, tt := range tests {
+		x := fibonacci{startTime: time.Now()}
+		got := x.iterative(tt.n)
+		x.timeTrack("iterative")
 		if !reflect.DeepEqual(got, tt.expect) {
-			t.Errorf("%s fail with inputs %d, expected %v; got %v", name, tt.n, tt.expect, got)
+			t.Errorf("FAIL with inputs %d, expected %v; got %v", tt.n, tt.expect, got)
 		} else {
-			fmt.Printf("SUCCESS: %s %d\n", name, i)
+			fmt.Printf("SUCCESS: %d\n", x.iters)
+		}
+		x = fibonacci{startTime: time.Now()}
+		gotDP := x.dynamicProgramming(tt.n)
+		x.timeTrack("dynamicProgramming")
+		if !reflect.DeepEqual(gotDP, tt.expect) {
+			t.Errorf("FAIL (fibonacciDP) with inputs %d, expected %v; got %v", tt.n, tt.expect, gotDP)
+		} else {
+			fmt.Printf("SUCCESS: %d\n", x.iters)
+		}
+		x = fibonacci{startTime: time.Now()}
+		gotFastDoubling := x.fastDoubling(tt.n)
+		x.timeTrack("FastDoubling")
+		if !reflect.DeepEqual(gotFastDoubling, tt.expect) {
+			t.Errorf("FAIL (gotFastDoubling) with inputs %d, expected %v; got %v", tt.n, tt.expect, gotFastDoubling)
+		} else {
+			fmt.Printf("SUCCESS: %d\n", x.iters)
+		}
+		if tt.n > 40 {
+			continue
+		}
+		x = fibonacci{startTime: time.Now()}
+		gotSimple := x.simple(tt.n)
+		x.timeTrack("simple")
+		if !reflect.DeepEqual(gotSimple, tt.expect) {
+			t.Errorf("FAIL (simple) with inputs %d, expected %v; got %v", tt.n, tt.expect, gotSimple)
+		} else {
+			fmt.Printf("SUCCESS: %d\n", x.iters)
 		}
 	}
 }
@@ -117,8 +155,9 @@ func fibonacciUpToTest(name string, t *testing.T) {
 		{6, []int{0, 1, 1, 2, 3, 5, 8}},
 		{12, []int{0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144}},
 	}
+	x := fibonacci{}
 	for i, tt := range tests {
-		got := fibonacciUpTo(tt.n)
+		got := x.upTo(tt.n)
 		if !reflect.DeepEqual(got, tt.expect) {
 			t.Errorf("%s fail with inputs %d, expected %v; got %v", name, tt.n, tt.expect, got)
 		} else {

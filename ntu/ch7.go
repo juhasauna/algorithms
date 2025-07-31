@@ -18,7 +18,7 @@ type Edge struct {
 // Ex. 1
 func (x *CH7) FindEulerianCircuitPseudo(eGraph *ut.EulerianGraph) ([]int, []Edge) {
 	if !eGraph.IsEulerian() {
-		log.Fatal("graph is not Eulerian")
+		log.Fatalf("graph '%s' is not Eulerian", eGraph.Name)
 	}
 	// eGraph.Print()
 	edgeStack := []Edge{}
@@ -72,3 +72,8 @@ func (x *CH7) FindEulerianCircuitPseudo(eGraph *ut.EulerianGraph) ([]int, []Edge
 // 		// g.RemoveIsolatedNodes()
 // 	}
 // }
+
+// 2 (7.28, p.269) A binary de Bruijn sequence
+func (x *CH7) BinaryDeBruijinSequence() {
+	// Prove that G is a directed Eulerian graph.
+}

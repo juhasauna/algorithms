@@ -371,14 +371,33 @@ func (x *CH6) minimumEditDistance(text1, text2 string) [][]int {
 	return costMatrix
 }
 
-func (x CH6) stringMatchKMP(text1, text2 string) int {
+func (x CH6) stringMatchKMP(from, search string) int {
+	fmt.Printf("stringMatchKMP: from/search %s/%s", from, search)
+	if len(from) < len(search) {
+		return -1
+	}
+	if len(from) == len(search) {
+		if from == search {
+			return 0
+		}
+		return -1
+	}
+	if search == "" {
+		return 0
+	}
+	if len(search) == 1 {
+		if string([]rune(from)[0]) == search {
+			return 0
+		}
+	}
 	// The book uses 1 based index which makes this much harder than it needs to be.
-	next := x.computeKMPNext(text2)
-	len1, len2 := len(text1), len(text2)
-	result := 0
+	next := x.computeKMPNext(search, false)
+	lenFrom, lenSearch := len(from), len(search)
+	result := -1
 	i, j := 0, 1
-	for result == 0 && i < len1 {
-		if text2[j] == text1[i] {
+	for result <= 0 && i < lenFrom {
+		fmt.Println("stringMatchKMP", search, j, from, i)
+		if search[j] == from[i] {
 			j++
 			i++
 		} else {
@@ -388,14 +407,14 @@ func (x CH6) stringMatchKMP(text1, text2 string) int {
 				i++
 			}
 		}
-		if j == len2 {
-			result = i - (len2 - 1)
+		if j == lenSearch {
+			result = i - (lenSearch - 1)
 		}
 	}
 	return result
 }
 
-func (x CH6) computeKMPNext(text string) []int {
+func (x CH6) computeKMPNext(text string, optimize bool) []int {
 	length := len(text)
 	fmt.Println("len: ", length, "text: ", text)
 	next := []int{-1, 0}
@@ -411,7 +430,23 @@ func (x CH6) computeKMPNext(text string) []int {
 		}
 		next = append(next, j)
 	}
+	if optimize {
+		x.optimizeKMPNextResult(text, next)
+	}
 	return next
+}
+
+// See HW 2024/6 Ex.5 alg2024hw6_s.pdf
+func (x CH6) optimizeKMPNextResult(text string, next []int) {
+	for i := 2; i < len(text); i++ {
+		j := next[i] + 1
+		if text[i] == text[j-1] {
+			next[i] = next[j-1]
+			if j == 0 {
+				break
+			}
+		}
+	}
 }
 
 func (x CH6) computeKMPNextGemini(pattern string) []int {

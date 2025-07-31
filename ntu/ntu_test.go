@@ -29,12 +29,80 @@ func Test_ntu(t *testing.T) {
 		// {"newAdjMatrix", newAdjMatrixTest},
 		// {"celebrityBruteForce", celebrityBruteForceTest},
 		// {"maximumConsequtiveSubsequence", maximumConsequtiveSubsequenceTest},
-		{"UnionFind", UnionFindTest},
+		// {"UnionFind", UnionFindTest},
+		// {"FindFibonacciWordSequence", FindFibonacciWordSequenceTest},
+		// {"longestIncreasingSubsequence", longestIncreasingSubsequenceTest},
+		{"binaryToGray", binaryToGrayTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.f(t)
 		})
+	}
+}
+
+func binaryToGrayTest(t *testing.T) {
+	tests := []struct {
+		bin  string
+		want string
+	}{
+		{"00", "00"},
+		{"01", "01"},
+		{"10", "11"},
+		{"11", "10"},
+		{"1111", "1000"},
+		{"101101", "111011"},
+	}
+	for i, tt := range tests {
+		x := NTU{}
+		got := x.binaryToGray(tt.bin)
+		if got != tt.want {
+			t.Errorf("FAIL: expexted: %s, got: %s", tt.want, got)
+		} else {
+			fmt.Printf("SUCCESS %d: got: %s\n", i, got)
+		}
+	}
+}
+func longestIncreasingSubsequenceTest(t *testing.T) {
+	tests := []struct {
+		seq         []int
+		wantLen     int
+		subSequence []int // There can be multiple valid ones.
+	}{
+		// {[]int{1, 2, 3, 4, 5}, 5, []int{}},
+		// {[]int{99, 10, 20, 30}, 3, []int{}},
+		// {[]int{2, 10, 5, 10, 20}, 4, []int{}},
+		// {[]int{9, 2, 3, 4, 0}, 3, []int{}},
+		// {[]int{4, 3, 2, 1, 5, 1}, 2, []int{}},
+		// {[]int{0, 3, 3, 2, 1, 0, 3, 2, 0, 2, 2, 2, 3, 4, 3, 2, 0, 4, 4, 1, 3, 4, 1, 3, 1, 3, 0, 4, 3, 1, 0, 1, 2}, 5, []int{0, 1, 2, 3, 4}},
+		// {[]int{2, 1, 7, 1, 5, 6, 9, 1, 3, 2, 9, 9, 7, 4, 9, 4, 7, 7, 2, 7, 2, 5, 9, 1, 0, 1, 3, 6, 8}, 6, []int{}},
+		// {[]int{1, 3, 2, 9, 7, 4, 9, 4, 7, 2, 7, 2, 5, 9, 1, 0, 1, 3, 6, 8}, 6, []int{1, 3, 4, 5, 6, 8}},
+		{[]int{1, 3, 11, 5, 12, 14, 7, 9, 15}, 6, nil},
+	}
+	for i, tt := range tests {
+		x := NTU{}
+		got := x.longestIncreasingSubsequence(tt.seq)
+		if got != tt.wantLen {
+			t.Errorf("FAIL: expexted: %d, got: %d", tt.wantLen, got)
+		} else {
+			fmt.Printf("SUCCESS %d: got: %d\n", i, got)
+		}
+	}
+}
+
+func FindFibonacciWordSequenceTest(t *testing.T) {
+	tests := []struct {
+		name       string
+		bitPattern string
+		length     int
+	}{
+		// {"", "1", 123},
+		{"", "1101", 5},
+	}
+	x := NTU{}
+	for _, tt := range tests {
+		got := x.FindFibonacciWordSequence(tt.bitPattern, tt.length)
+		t.Log(got)
 	}
 }
 

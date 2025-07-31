@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strconv"
 	"testing"
 )
 
@@ -359,4 +360,88 @@ func (x *NTU) knapsackGemini(S []int, K int) [][]Cell {
 		}
 	}
 	return P
+}
+
+// returns the smallest m F(m) where the bitPattern appears. If it does not appear for n then returns -1
+func (x *NTU) FindFibonacciWordSequence(bitPattern string, n int) int {
+	if bitPattern == "0" && n >= 0 {
+		return 0
+	}
+	if bitPattern == "1" && n >= 1 {
+		return 1
+	}
+	if !(bitPattern != "" && n >= 2) {
+		return -1
+	}
+	p_len := len(bitPattern)
+	m := 2
+	f, f1, f2 := "10", "1", "0"
+	l, l1, l2 := 2, 1, 1
+	for l < p_len {
+		m++
+		f, f1, f2 = f1+f2, f, f1
+		l, l1, l2 = l1+l2, l, l1
+	}
+	ch6 := CH6{}
+	bitPattern = ""
+	for _, v := range ch6.computeKMPNext(bitPattern, false)[1:] {
+		bitPattern += strconv.Itoa(v)
+	}
+	found, i := false, 0
+	for !found && i < 4 {
+		kmpResult := ch6.stringMatchKMP(f, bitPattern)
+		if kmpResult != -1 {
+			found = true
+		} else {
+			i++
+			f, f1, f2 = f1+f2, f, f1
+		}
+	}
+	if found {
+		return m + i
+	}
+	return -1
+}
+
+// This does not give us the actual subsequence. Just the maximum length.
+func (x *NTU) longestIncreasingSubsequence(seq []int) int {
+	// fmt.Println(seq)
+	seqLen := len(seq)
+	max := 1
+	lengths := []int{}
+	for range seqLen {
+		lengths = append(lengths, 1) // Init with 1 since that is the shortest possible LISS.
+	}
+	for i := 1; i < seqLen; i++ {
+		for j := range i {
+			// fmt.Print(seq[i], seq[j], " - ", result[j]+1, result[i])
+			if seq[i] > seq[j] && lengths[j]+1 > lengths[i] {
+				lengths[i] = lengths[j] + 1
+			}
+			// fmt.Println("\t", result)
+		}
+		if lengths[i] > max {
+			// ss = append(ss, seq[i])
+			max = lengths[i]
+		}
+	}
+	fmt.Println(lengths)
+	// max := slices.Max(result)
+	return max
+}
+
+func (x *NTU) binaryToGray(bin string) string {
+	if bin == "" {
+		return ""
+	}
+	gray := string(bin[0])
+	for i := 1; i < len(bin); i++ {
+		if bin[i-1] != bin[i] {
+			gray += "1"
+		} else {
+			gray += "0"
+		}
+	}
+
+	return gray
 }

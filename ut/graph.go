@@ -13,6 +13,7 @@ type Graph struct {
 	Adj   [][]int  // adjacency matrix
 	Edges []Edge   // This has the same information as Adj, but sometimes more convenient to work with.
 	Name  string
+	iters int
 }
 
 type sccMemo struct {
@@ -35,14 +36,14 @@ func (g Graph) TarjansStronglyConnectedComponents() map[string]int {
 		dfsN--
 		stack.Push(node)
 		for _, e := range g.EdgesFrom(node) {
-			if memos[e.to].dfsNumber == 0 {
-				scc(e.to)
+			if memos[e.To].dfsNumber == 0 {
+				scc(e.To)
 				temp := memos[node]
-				temp.high = Max(memos[node].high, memos[e.to].high)
+				temp.high = Max(memos[node].high, memos[e.To].high)
 				memos[node] = temp
-			} else if memos[e.to].dfsNumber > memos[node].dfsNumber && memos[e.to].component == 0 {
+			} else if memos[e.To].dfsNumber > memos[node].dfsNumber && memos[e.To].component == 0 {
 				temp := memos[node]
-				temp.high = Max(memos[node].high, memos[e.to].dfsNumber)
+				temp.high = Max(memos[node].high, memos[e.To].dfsNumber)
 				memos[node] = temp
 			}
 			NTUSCCEXPrinter(memos)
@@ -116,9 +117,9 @@ func (g Graph) FindLongestPath() []string {
 
 	for _, node := range topologicalSortResultToSlice(g.TopologicalSorting()) {
 		for _, e := range g.EdgesFrom(node) {
-			if lengths[e.to].weight < lengths[node].weight+1 {
+			if lengths[e.To].weight < lengths[node].weight+1 {
 				newMemory := memory{lengths[node].weight + 1, node}
-				lengths[e.to] = newMemory
+				lengths[e.To] = newMemory
 			}
 		}
 	}
@@ -138,6 +139,20 @@ func (g Graph) FindLongestPath() []string {
 	}
 	slices.Reverse(longestPath)
 	return longestPath
+}
+
+// file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/exams/alg2021final_s20221215.pdf
+// final.2021.Ex3.
+func DetectNegativeWeightCycle(adjMatrix [][]int) bool {
+	size := len(adjMatrix)
+	for i := range size {
+		for j := range size {
+			if i == j && adjMatrix[i][j] < 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Floyd's algorithm AKA Floyd-Warshall. Negative edge weights allowed, but no negative cycles.
@@ -191,7 +206,7 @@ func (g Graph) Kruskal() []UndirectedEdge {
 	dsu.DSUInit(seq)
 
 	for i, e := range g.Edges {
-		u, v := int([]rune(e.from)[0]), int([]rune(e.to)[0])
+		u, v := int([]rune(e.From)[0]), int([]rune(e.To)[0])
 		if dsu.Find(u) != dsu.Find(v) {
 			treeEdges[i] = e
 			dsu.Union(u, v)
@@ -203,11 +218,11 @@ func (g Graph) Kruskal() []UndirectedEdge {
 
 	result := []UndirectedEdge{}
 	for _, e := range treeEdges {
-		if e.from < e.to {
-			result = append(result, UndirectedEdge{e.from, e.to, e.weight})
+		if e.From < e.To {
+			result = append(result, UndirectedEdge{e.From, e.To, e.Weight})
 			continue
 		}
-		result = append(result, UndirectedEdge{e.to, e.from, e.weight})
+		result = append(result, UndirectedEdge{e.To, e.From, e.Weight})
 	}
 	sort.Slice(result, func(i, j int) bool {
 		if result[i].weight != result[j].weight {
@@ -221,6 +236,40 @@ func (g Graph) Kruskal() []UndirectedEdge {
 	return result
 }
 
+func (g Graph) FindNewMCST(mcst []UndirectedEdge, decreasedEdge UndirectedEdge) []UndirectedEdge {
+	// If decreasedEdge in mcst, then obviously mcst is still mcst. Thus we only need to consider cases where decreasedEdge is not in mcst.
+	// The idea is to add {u, v} to T, which creates a cycle in the tree.
+	// After locating the cycle, we remove the edge with the largest cost in
+	// the cycle and obtain a new MCST.
+	if UndirectedEdgesContain(mcst, decreasedEdge) {
+		return mcst
+	}
+
+	g2 := NewUndirectedGraph("mcst+decreased edge", append(mcst, decreasedEdge))
+	cycle := g2.FindUndirectedCycle()
+	if len(cycle) == 0 {
+		log.Fatalf("FindNewMCST(): no cycles found. Choose a better decreasedEdge (%+v)\n", decreasedEdge)
+	}
+	// If a cycle is found, we can simply delete the most expensive edge from the cycle and return a new MCST.
+	// fmt.Printf("%+v\n", cycle)
+
+	removeEdge := decreasedEdge
+
+	for _, e := range cycle {
+		undirEdge := e
+		if undirEdge.weight > removeEdge.weight {
+			removeEdge = undirEdge
+		}
+	}
+	g2.RemoveEdge(removeEdge)
+	resultEdges := g2.NewUndirectedEdges()
+	for _, e := range g2.Edges {
+		resultEdges[e.From][e.To] = e.Weight
+	}
+
+	return resultEdges.toSlice()
+}
+
 // Minimum-Cost Spanning Tree. A variant of Prim's algorithm. For simplicity, we assume that the costs are distinct.
 func (g Graph) MCST() []UndirectedEdge {
 	// MCST is for undirected graph but we are treating a directecd graph as undirected by ignoring the direction of edges.
@@ -228,13 +277,13 @@ func (g Graph) MCST() []UndirectedEdge {
 	treeEdges := make(map[string]Edge)
 	marks := []string{}
 	for _, v := range g.Nodes {
-		treeEdges[v] = Edge{weight: INF}
+		treeEdges[v] = Edge{Weight: INF}
 	}
 	minEdge := g.GetMinWeightEdge(marks)
-	x := minEdge.from // Either 'from' or 'to' works
+	x := minEdge.From // Either 'from' or 'to' works
 	marks = append(marks, x)
 	for _, e := range g.NodeEdges(x) {
-		z := GetReciprocalNode(x, e)
+		z := e.GetReciprocalNode(x)
 		treeEdges[z] = e
 	}
 
@@ -244,8 +293,8 @@ func (g Graph) MCST() []UndirectedEdge {
 		newTreeEdge := Edge{}
 		for key, e := range treeEdges {
 			if !slices.Contains(marks, key) {
-				if e.weight < minWeight {
-					minWeight = e.weight
+				if e.Weight < minWeight {
+					minWeight = e.Weight
 					minNode = key
 					newTreeEdge = e
 				}
@@ -258,9 +307,9 @@ func (g Graph) MCST() []UndirectedEdge {
 		treeEdges[minNode] = newTreeEdge
 
 		for _, e := range g.NodeEdges(minNode) {
-			z := GetReciprocalNode(minNode, e)
+			z := e.GetReciprocalNode(minNode)
 			if !slices.Contains(marks, z) {
-				if e.weight < treeEdges[z].weight {
+				if e.Weight < treeEdges[z].Weight {
 					treeEdges[z] = e
 				}
 			}
@@ -268,14 +317,128 @@ func (g Graph) MCST() []UndirectedEdge {
 	}
 	result := []UndirectedEdge{}
 	for _, e := range treeEdges {
-		if e.weight == INF {
+		if e.Weight == INF {
 			continue
 		}
-		if e.from < e.to {
-			result = append(result, UndirectedEdge{e.from, e.to, e.weight})
+		if e.From < e.To {
+			result = append(result, UndirectedEdge{e.From, e.To, e.Weight})
 			continue
 		}
-		result = append(result, UndirectedEdge{e.to, e.from, e.weight})
+		result = append(result, UndirectedEdge{e.To, e.From, e.Weight})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].weight != result[j].weight {
+			return result[i].weight < result[j].weight
+		}
+		if result[i].a != result[j].a {
+			return result[i].a < result[j].a
+		}
+		return result[i].b < result[j].b
+	})
+	return result
+}
+
+type UndirectedEdges map[string]map[string]int
+
+func (g Graph) NewUndirectedEdges() UndirectedEdges {
+	m := make(UndirectedEdges)
+	for _, e := range g.Edges {
+		if _, ok := m[e.From]; !ok {
+			m[e.From] = make(map[string]int)
+		}
+		if _, ok := m[e.To]; !ok {
+			m[e.To] = make(map[string]int)
+		}
+		m[e.From][e.To] = e.Weight
+		m[e.To][e.From] = e.Weight
+	}
+	return m
+}
+func NewUndirectedEdges(edges []Edge) UndirectedEdges {
+	m := make(UndirectedEdges)
+	for _, e := range edges {
+		if _, ok := m[e.From]; !ok {
+			m[e.From] = make(map[string]int)
+		}
+		if _, ok := m[e.To]; !ok {
+			m[e.To] = make(map[string]int)
+		}
+		m[e.From][e.To] = e.Weight
+		m[e.To][e.From] = e.Weight
+	}
+	return m
+}
+
+func (x *UndirectedEdges) toSlice() []UndirectedEdge {
+	result := []UndirectedEdge{}
+	for a, v := range *x {
+		for b, w := range v {
+			result = append(result, UndirectedEdge{a: a, b: b, weight: w})
+			delete((*x)[b], a)
+		}
+	}
+
+	return result
+}
+func (x *UndirectedEdges) Remove(a, b string) {
+	delete((*x)[a], b)
+	delete((*x)[b], a)
+	if len((*x)[a]) == 0 {
+		delete(*x, a)
+	}
+	if len((*x)[b]) == 0 {
+		delete(*x, b)
+	}
+}
+func (x *UndirectedEdges) RemoveAllNodeEdges(node string) {
+	for key, _ := range (*x)[node] {
+		x.Remove(node, key)
+	}
+}
+
+func (g *Graph) HeapPrims() []UndirectedEdge {
+	undirectedEdges := g.NewUndirectedEdges()
+	// fmt.Printf("%+v\n", undirectedEdges)
+	minHeap := NewDijkstraHeap([]*DijkstraNode{{Name: g.Nodes[0], Weight: 0}})
+
+	candidateEdges := make(map[string]int)
+	mcsTree := make(map[string]UndirectedEdge)
+	for !minHeap.IsEmpty() {
+		currentNode := minHeap.Extract()
+		if _, ok := mcsTree[currentNode.Name]; ok {
+			continue
+		}
+		mcsTree[currentNode.Name] = currentNode.Edge // Adding the smallest edge to a node not yet in the spanning tree.
+
+		for otherNode, weight := range undirectedEdges[currentNode.Name] {
+			if _, ok := mcsTree[otherNode]; !ok {
+				if oldWeight, ok := candidateEdges[otherNode]; !ok {
+					candidateEdges[otherNode] = weight
+					minHeap.Insert(&DijkstraNode{otherNode, weight, UndirectedEdge{a: currentNode.Name, b: otherNode, weight: weight}})
+				} else if oldWeight > weight {
+					candidateEdges[otherNode] = weight
+					minHeap.DecreaseKey(&DijkstraNode{otherNode, weight, UndirectedEdge{a: currentNode.Name, b: otherNode, weight: weight}})
+				}
+				// fmt.Println("currentNode:", currentNode.Name)
+				// minHeap.PrintTree()
+
+			}
+			// fmt.Printf("%+v\n", mcsTree)
+		}
+
+	}
+	// fmt.Printf("%+v\n", mcsTree)
+	result := []UndirectedEdge{}
+	for _, e := range mcsTree {
+		if e.a == "" && e.b == "" {
+			continue
+		}
+		if e.a > e.b {
+			e.a, e.b = e.b, e.a
+			result = append(result, e)
+		} else {
+			result = append(result, e)
+		}
 	}
 	sort.Slice(result, func(i, j int) bool {
 		if result[i].weight != result[j].weight {
@@ -296,13 +459,22 @@ type UndirectedEdge struct {
 }
 
 func GetReciprocalNode(node string, e Edge) string {
-	if e.to == node {
-		return e.from
+	if e.To == node {
+		return e.From
 	}
-	if e.from != node {
+	if e.From != node {
 		log.Fatal("GetRecipricalNode error")
 	}
-	return e.to
+	return e.To
+}
+func (e Edge) GetReciprocalNode(node string) string {
+	if e.To == node {
+		return e.From
+	}
+	if e.From != node {
+		log.Fatal("GetRecipricalNode error")
+	}
+	return e.To
 }
 
 // For efficient implementation use min-heap instead.
@@ -310,14 +482,14 @@ func (g Graph) GetMinWeightEdge(marks []string) Edge {
 	minWeight := INF
 	result := Edge{}
 	for _, e := range g.Edges {
-		if !slices.Contains(marks, e.from) {
-			if e.weight < minWeight {
-				minWeight = e.weight
+		if !slices.Contains(marks, e.From) {
+			if e.Weight < minWeight {
+				minWeight = e.Weight
 				result = e
 			}
-		} else if !slices.Contains(marks, e.to) {
-			if e.weight < minWeight {
-				minWeight = e.weight
+		} else if !slices.Contains(marks, e.To) {
+			if e.Weight < minWeight {
+				minWeight = e.Weight
 				result = e
 			}
 		}
@@ -334,8 +506,8 @@ func (x Graph) DPSSSP(startNode string) map[string]int {
 		D[node] = INF
 		if node != startNode {
 			for _, e := range x.Edges {
-				if e.from == startNode {
-					D[e.to] = e.weight
+				if e.From == startNode {
+					D[e.To] = e.Weight
 				}
 			}
 		} else {
@@ -346,8 +518,8 @@ func (x Graph) DPSSSP(startNode string) map[string]int {
 		for _, node := range x.Nodes {
 			if node != startNode {
 				for _, e := range x.EdgesTo(node) {
-					if D[e.from]+e.weight < D[e.to] {
-						D[e.to] = D[e.from] + e.weight
+					if D[e.From]+e.Weight < D[e.To] {
+						D[e.To] = D[e.From] + e.Weight
 					}
 				}
 			}
@@ -364,7 +536,6 @@ func (x Graph) DPSSSP(startNode string) map[string]int {
 // See DijkstrasNTUPseudo for a more accurate duplication of the NTU-pseudo code.
 // AKA. Single Source Shortest Paths. Dijkstras assumes no negative weights. When the graph is not acyclic, there is no such thing as a topological order.
 func (g Graph) Dijkstras(startNode string) map[string]int {
-	// The problem with this implementation is that we're inserting duplicate values to the heap. It still works since Extract() always removes the min. But for an efficient implementation we should be updating the heap element if it already exists. The method for this is commonly called 'DecreaseKey()'
 	minHeap := NewDijkstraHeap([]*DijkstraNode{{Name: startNode, Weight: 0}})
 	results := make(map[string]int)
 
@@ -376,10 +547,10 @@ func (g Graph) Dijkstras(startNode string) map[string]int {
 		}
 		fmt.Printf("Extracted: %+v\n", *w)
 		for _, e := range g.EdgesFrom(w.Name) {
-			if _, visited := results[e.to]; !visited {
-				fmt.Printf("inserting %s: %d\n", e.to, w.Weight+e.weight)
-				kid := &DijkstraNode{Name: e.to, Weight: w.Weight + e.weight}
-				if existingNode := minHeap.GetNode(e.to); existingNode != nil {
+			if _, visited := results[e.To]; !visited {
+				fmt.Printf("inserting %s: %d\n", e.To, w.Weight+e.Weight)
+				kid := &DijkstraNode{Name: e.To, Weight: w.Weight + e.Weight}
+				if existingNode := minHeap.GetNode(e.To); existingNode != nil {
 					if existingNode.Weight > kid.Weight {
 						minHeap.DecreaseKey(kid)
 					}
@@ -402,9 +573,9 @@ func (g Graph) DijkstrasSimpleButNotOptimal(startNode string) map[string]int {
 			results[w.Name] = w.Weight
 		}
 		for _, e := range g.EdgesFrom(w.Name) {
-			if _, visited := results[e.to]; !visited {
+			if _, visited := results[e.To]; !visited {
 				// fmt.Printf("inserting %s: %d\n", e.to, w.Weight+e.weight)
-				kid := &DijkstraNode{Name: e.to, Weight: w.Weight + e.weight}
+				kid := &DijkstraNode{Name: e.To, Weight: w.Weight + e.Weight}
 				minHeap.Insert(kid)
 			}
 		}
@@ -427,9 +598,9 @@ func (x Graph) DijkstrasNTUPseudo(startNode string) map[string]int {
 		marks = append(marks, w)
 		// fmt.Printf("w: %s, marks: %v\n", w, marks)
 		for _, e := range x.EdgesFrom(w) {
-			if !slices.Contains(marks, e.to) {
-				if lengths[w]+e.weight < lengths[e.to] {
-					lengths[e.to] = lengths[w] + e.weight
+			if !slices.Contains(marks, e.To) {
+				if lengths[w]+e.Weight < lengths[e.To] {
+					lengths[e.To] = lengths[w] + e.Weight
 				}
 			}
 		}
@@ -483,8 +654,8 @@ func (x Graph) AcyclicShortestPaths(startNode string) map[string]int {
 			}
 			recurse(n - 1)
 			for _, e := range edges {
-				if sp[e.from]+e.weight < sp[z] {
-					sp[z] = sp[e.from] + e.weight
+				if sp[e.From]+e.Weight < sp[z] {
+					sp[z] = sp[e.From] + e.Weight
 				}
 			}
 		} else {
@@ -507,12 +678,12 @@ func (x Graph) GetNodeDegrees() map[string]TopologicalOrder {
 		m[v] = TopologicalOrder{}
 	}
 	for _, e := range x.Edges {
-		temp := m[e.from]
+		temp := m[e.From]
 		temp.outDegree++
-		m[e.from] = temp
-		temp = m[e.to]
+		m[e.From] = temp
+		temp = m[e.To]
 		temp.inDegree++
-		m[e.to] = temp
+		m[e.To] = temp
 	}
 	return m
 }
@@ -541,11 +712,11 @@ func (x *Graph) TopologicalSorting() map[string]TopologicalOrder {
 		temp.label = G_label
 		nodes[from] = temp
 		for _, e := range x.EdgesFrom(from) {
-			temp := nodes[e.to]
+			temp := nodes[e.To]
 			temp.inDegree--
-			nodes[e.to] = temp
+			nodes[e.To] = temp
 			if temp.inDegree <= 0 {
-				queue = append(queue, e.to)
+				queue = append(queue, e.To)
 			}
 		}
 	}
@@ -568,11 +739,11 @@ func (x *Graph) BFS(startNode string) []Edge {
 		from := queue[0]
 		queue = queue[1:] // {first in queue, ..., last in queue}
 		for _, e := range x.Edges {
-			if e.from == from {
-				if !slices.Contains(marks, e.to) {
-					marks = append(marks, e.to)
-					result = append(result, Edge{from, e.to, e.weight})
-					queue = append(queue, e.to)
+			if e.From == from {
+				if !slices.Contains(marks, e.To) {
+					marks = append(marks, e.To)
+					result = append(result, Edge{from, e.To, e.Weight})
+					queue = append(queue, e.To)
 				}
 			}
 		}
@@ -581,16 +752,35 @@ func (x *Graph) BFS(startNode string) []Edge {
 
 }
 
+// We're assuming there is 0 or 1 cycles.
+func (g Graph) FindUndirectedCycle() []UndirectedEdge {
+	// I think this is O(E^2). O(V + E) is possible.
+	undirEdges := g.NewUndirectedEdges()
+
+	loop := true
+	for loop {
+		loop = false
+		for key, v := range undirEdges {
+			if len(v) == 1 {
+				// fmt.Printf("%+v\n", undirEdges)
+				undirEdges.RemoveAllNodeEdges(key)
+				loop = true
+			}
+		}
+	}
+	return undirEdges.toSlice()
+}
+
 func (x *Graph) HaveCycle() bool { // NOT TESTED SO PROPABLY NOT CORRECT.
-	startNode := x.Edges[0].from
+	startNode := x.Edges[0].From
 	dfsEdges := x.DFS(startNode)
 	visited := make(map[string]struct{})
 	for _, v := range dfsEdges {
-		visited[v.from] = struct{}{}
+		visited[v.From] = struct{}{}
 	}
 	for _, v := range dfsEdges {
-		if _, ok := visited[v.to]; ok {
-			fmt.Printf("cycle found from %s to itself", v.to)
+		if _, ok := visited[v.To]; ok {
+			fmt.Printf("cycle found from %s to itself", v.To)
 			return true
 		}
 	}
@@ -604,10 +794,10 @@ func (x *Graph) DFS(startNode string) []Edge {
 	recurse = func(from string) {
 		marks = append(marks, from)
 		for _, e := range x.Edges {
-			if e.from == from {
-				if !slices.Contains(marks, e.to) {
-					result = append(result, Edge{from, e.to, e.weight})
-					recurse(e.to)
+			if e.From == from {
+				if !slices.Contains(marks, e.To) {
+					result = append(result, Edge{from, e.To, e.Weight})
+					recurse(e.To)
 				}
 			}
 
@@ -616,26 +806,38 @@ func (x *Graph) DFS(startNode string) []Edge {
 	recurse(startNode)
 	return result
 }
-func (x *Graph) RemoveEdge(edge Edge) {
-	for i, e := range x.Edges {
-		if e.from == edge.from && e.to == edge.to {
-			x.Edges = slices.Delete(x.Edges, i, i+1)
-			u, v := x.Index(e.from), x.Index(e.to)
-			x.Adj[u][v] = 0
-			return
+
+func (g *Graph) RemoveEdge(edge any) {
+	switch value := edge.(type) {
+	case Edge:
+		for i, e := range g.Edges {
+			if e.From == value.From && e.To == value.To {
+				g.Edges = slices.Delete(g.Edges, i, i+1)
+				u, v := g.Index(e.From), g.Index(e.To)
+				g.Adj[u][v] = 0
+				return
+			}
 		}
+	case Tuple:
+		g.RemoveEdge(Edge{From: value[0], To: value[1]})
+		g.RemoveEdge(Edge{From: value[1], To: value[0]})
+	case UndirectedEdge:
+		g.RemoveEdge(Edge{From: value.a, To: value.b})
+		g.RemoveEdge(Edge{From: value.b, To: value.a})
+	default:
+		log.Fatal("Unsupported type")
 	}
 }
 
 func (x *Graph) AddEdge(edge Edge) {
-	if !slices.Contains(x.Nodes, edge.from) {
-		log.Fatalf("Cannot add edge from node %s because it's not in the nodes list", edge.from)
+	if !slices.Contains(x.Nodes, edge.From) {
+		log.Fatalf("Cannot add edge from node %s because it's not in the nodes list", edge.From)
 	}
-	if !slices.Contains(x.Nodes, edge.to) {
-		log.Fatalf("Cannot add edge to node %s because it's not in the nodes list", edge.to)
+	if !slices.Contains(x.Nodes, edge.To) {
+		log.Fatalf("Cannot add edge to node %s because it's not in the nodes list", edge.To)
 	}
 	x.Edges = append(x.Edges, edge)
-	x.Adj[x.Index(edge.from)][x.Index(edge.to)] = edge.weight
+	x.Adj[x.Index(edge.From)][x.Index(edge.To)] = edge.Weight
 }
 
 func NewUndirectedGraph(name string, edges_ any, unconnectedNodes ...string) Graph {
@@ -651,7 +853,7 @@ func NewUndirectedGraph(name string, edges_ any, unconnectedNodes ...string) Gra
 	}
 	directedEdgesCount := len(g.Edges)
 	for _, e := range g.Edges {
-		g.Edges = append(g.Edges, Edge{from: e.to, to: e.from, weight: e.weight})
+		g.Edges = append(g.Edges, Edge{From: e.To, To: e.From, Weight: e.Weight})
 	}
 	edgeCount := len(g.Edges)
 	if 2*directedEdgesCount != edgeCount {
@@ -666,7 +868,11 @@ func NewGraph(name string, edges_ any, unconnectedNodes ...string) Graph {
 		edges = value
 	case []Tuple:
 		for _, e := range value {
-			edges = append(edges, Edge{from: e[0], to: e[1], weight: 1})
+			edges = append(edges, Edge{From: e[0], To: e[1], Weight: 1})
+		}
+	case []UndirectedEdge:
+		for _, e := range value {
+			edges = append(edges, Edge{From: e.a, To: e.b, Weight: e.weight})
 		}
 	default:
 		log.Fatal("Unsupported type")
@@ -674,11 +880,11 @@ func NewGraph(name string, edges_ any, unconnectedNodes ...string) Graph {
 	g := Graph{Name: name}
 	nodes := unconnectedNodes
 	for _, e := range edges {
-		if !slices.Contains(nodes, e.from) {
-			nodes = append(nodes, e.from)
+		if !slices.Contains(nodes, e.From) {
+			nodes = append(nodes, e.From)
 		}
-		if !slices.Contains(nodes, e.to) {
-			nodes = append(nodes, e.to)
+		if !slices.Contains(nodes, e.To) {
+			nodes = append(nodes, e.To)
 		}
 	}
 	slices.Sort(nodes)
@@ -695,19 +901,19 @@ func NewGraph(name string, edges_ any, unconnectedNodes ...string) Graph {
 
 	// This is just to make testcases more convenient to work with.
 	slices.SortFunc(g.Edges, func(a, b Edge) int {
-		if a.from > b.from {
+		if a.From > b.From {
 			return 1
-		} else if a.from != b.from {
+		} else if a.From != b.From {
 			return -1
 		}
-		if a.to > b.to {
+		if a.To > b.To {
 			return 1
-		} else if a.to != b.to {
+		} else if a.To != b.To {
 			return -1
 		}
-		if a.weight > b.weight {
+		if a.Weight > b.Weight {
 			return 1
-		} else if a.weight != b.weight {
+		} else if a.Weight != b.Weight {
 			return -1
 		}
 		return 0
@@ -717,19 +923,19 @@ func NewGraph(name string, edges_ any, unconnectedNodes ...string) Graph {
 
 func (g *Graph) SortEdgesAscendingByWeight() {
 	slices.SortFunc(g.Edges, func(a, b Edge) int {
-		if a.weight > b.weight {
+		if a.Weight > b.Weight {
 			return 1
-		} else if a.weight != b.weight {
+		} else if a.Weight != b.Weight {
 			return -1
 		}
-		if a.from > b.from {
+		if a.From > b.From {
 			return 1
-		} else if a.from != b.from {
+		} else if a.From != b.From {
 			return -1
 		}
-		if a.to > b.to {
+		if a.To > b.To {
 			return 1
-		} else if a.to != b.to {
+		} else if a.To != b.To {
 			return -1
 		}
 		return 0
@@ -780,7 +986,7 @@ func (x Graph) PrintMatrix() {
 func (g Graph) NodeEdges(node string) []Edge {
 	result := []Edge{}
 	for _, e := range g.Edges {
-		if e.from == node || e.to == node {
+		if e.From == node || e.To == node {
 			result = append(result, e)
 		}
 	}
@@ -790,7 +996,7 @@ func (g Graph) NodeEdges(node string) []Edge {
 func (x *Graph) EdgesFrom(from string) []Edge {
 	result := []Edge{}
 	for _, e := range x.Edges {
-		if e.from == from {
+		if e.From == from {
 			result = append(result, e)
 		}
 	}
@@ -799,7 +1005,7 @@ func (x *Graph) EdgesFrom(from string) []Edge {
 func (x *Graph) EdgesTo(to string) []Edge {
 	result := []Edge{}
 	for _, e := range x.Edges {
-		if e.to == to {
+		if e.To == to {
 			result = append(result, e)
 		}
 	}
@@ -811,10 +1017,10 @@ func DrawDirectedGraphASCII(edges []Edge) {
 
 	// Build adjacency list
 	for _, e := range edges {
-		adj[e.from] = append(adj[e.from], e.to)
+		adj[e.From] = append(adj[e.From], e.To)
 		// Ensure the 'to' node appears even if it has no outgoing edges
-		if _, exists := adj[e.to]; !exists {
-			adj[e.to] = []string{}
+		if _, exists := adj[e.To]; !exists {
+			adj[e.To] = []string{}
 		}
 	}
 
@@ -831,25 +1037,51 @@ func DrawDirectedGraphASCII(edges []Edge) {
 }
 
 type Edge struct {
-	from   string
-	to     string
-	weight int
+	From   string
+	To     string
+	Weight int
+}
+
+func (e *Edge) Name() string {
+	return e.From + "_" + e.To
 }
 
 // Source is a node with indegree zero.
 func (x Graph) GetSources() []string {
 	sources := x.Nodes
 	for _, e := range x.Edges {
-		sources = RemoveSliceValue(sources, e.to)
+		sources = RemoveSliceValue(sources, e.To)
 	}
 	return sources
 }
 func (x Graph) GetSinks() []string {
 	sinks := x.Nodes
 	for _, e := range x.Edges {
-		sinks = RemoveSliceValue(sinks, e.from)
+		sinks = RemoveSliceValue(sinks, e.From)
 	}
 	return sinks
+}
+func (g Graph) ContainsUndirectedEdge(checkEdge UndirectedEdge) bool {
+	for _, e := range g.Edges {
+		if e.To == checkEdge.a && e.From == checkEdge.b {
+			return true
+		}
+		if e.From == checkEdge.a && e.To == checkEdge.b {
+			return true
+		}
+	}
+	return false
+}
+func UndirectedEdgesContain(edges []UndirectedEdge, checkEdge UndirectedEdge) bool {
+	for _, e := range edges {
+		if e.a == checkEdge.a && e.b == checkEdge.b {
+			return true
+		}
+		if e.b == checkEdge.a && e.a == checkEdge.b {
+			return true
+		}
+	}
+	return false
 }
 
 const INF = math.MaxInt16

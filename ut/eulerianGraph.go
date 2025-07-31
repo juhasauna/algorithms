@@ -8,7 +8,8 @@ import (
 type EulerianGraph struct {
 	// EulerianGraph is a connected multigraph with all vertices of even degree
 	// Allows multiple edges between vertices.
-	Adj map[int]map[int]int
+	Adj  map[int]map[int]int
+	Name string
 }
 
 func (g *EulerianGraph) Copy() *EulerianGraph {
@@ -135,8 +136,8 @@ func (g *EulerianGraph) Hierholzer(start int) []int {
 	return path
 }
 
-func NewEulerianGraph() *EulerianGraph {
-	return &EulerianGraph{Adj: make(map[int]map[int]int)}
+func NewEulerianGraph(name string) *EulerianGraph {
+	return &EulerianGraph{Adj: make(map[int]map[int]int), Name: name}
 }
 
 func (g *EulerianGraph) AddEdge(u, v int) {
@@ -215,14 +216,16 @@ func (g *EulerianGraph) Print() {
 }
 
 func GetEulerianGraphK3() *EulerianGraph {
-	g := NewEulerianGraph()
+	g := NewEulerianGraph("K3")
 	g.AddEdge(0, 1)
 	g.AddEdge(0, 2)
 	g.AddEdge(1, 2)
 	return g
 }
 func GetEulerianGraphK4() *EulerianGraph {
+
 	g := GetEulerianGraphK3()
+	g.Name = "K4"
 	g.AddEdge(0, 3)
 	g.AddEdge(1, 3)
 	g.AddEdge(2, 3)
@@ -230,6 +233,7 @@ func GetEulerianGraphK4() *EulerianGraph {
 }
 func GetEulerianGraphK5() *EulerianGraph {
 	g := GetEulerianGraphK4()
+	g.Name = "K5"
 	g.AddEdge(0, 4)
 	g.AddEdge(1, 4)
 	g.AddEdge(2, 4)
@@ -238,6 +242,7 @@ func GetEulerianGraphK5() *EulerianGraph {
 }
 func GetEulerianGraphK5_a() *EulerianGraph {
 	g := GetEulerianGraphK4()
+	g.Name = "K5_a"
 	g.AddEdge(0, 4)
 	g.AddEdge(1, 4)
 	g.AddEdge(2, 4)
@@ -249,6 +254,7 @@ func GetEulerianGraphK5_a() *EulerianGraph {
 }
 func GetNotEulerianGraphK5_a() *EulerianGraph {
 	g := GetEulerianGraphK4()
+	g.Name = "K5_a_not_eulerian"
 	g.AddEdge(0, 4)
 	g.AddEdge(1, 4)
 	g.AddEdge(2, 4)
@@ -258,6 +264,7 @@ func GetNotEulerianGraphK5_a() *EulerianGraph {
 }
 func GetEulerianGraphBowtie() *EulerianGraph {
 	g := GetEulerianGraphK3()
+	g.Name = "Bowtie"
 	g.AddEdge(2, 3)
 	g.AddEdge(2, 4)
 	g.AddEdge(4, 3)
@@ -270,6 +277,7 @@ func GetNotEulerianGraph2by4PartialDiagonal() *EulerianGraph {
 	// |/ \|   |/ \|
 	// 2---3---6---7
 	g := GetEulerianGraphK4()
+	g.Name = "2by4PartialDiagonal_not_eulerian"
 	g.AddEdge(1, 4)
 	g.AddEdge(3, 6)
 

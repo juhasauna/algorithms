@@ -15,12 +15,12 @@ func Test_graph(t *testing.T) {
 	}{
 		// {"DFS", DFSTest},
 		// {"TopologicalSorting", TopologicalSortingTest},
-		{"Dijkstras", DijkstrasTest},
+		// {"Dijkstras", DijkstrasTest},
 		// {"MCST", MCSTTest},
-		// {"AllPairsShortestPaths", AllPairsShortestPathsTest},
+		{"AllPairsShortestPaths", AllPairsShortestPathsTest},
 		// {"FindLongestPath", FindLongestPathTest},
 		// {"StronglyConnectedComponents", StronglyConnectedComponentsTest},
-		// {"Kruskal", KruskalTest},
+		// {"FindNewMCST", FindNewMCSTTtest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -98,13 +98,15 @@ func FindLongestPathTest(t *testing.T) {
 }
 func AllPairsShortestPathsTest(t *testing.T) {
 	tests := []struct {
-		name string
+		name                string
+		negativeWeightCycle bool
 	}{
-		// {"YT_D.Sutantyo 8.1"},
-		// {"YT_D.Sutantyo 8.3 (negative weights)"},
-		{"YT_D.Sutantyo 8.4"},
-		// {"ManberFig7.18(p.224)"},
-		// {"ManberFig7.21(p.229)"},
+		// {"YT_D.Sutantyo 8.1", false},
+		// {"YT_D.Sutantyo 8.3 (negative weights)", false},
+		// {"YT_D.Sutantyo 8.4", false},
+		{"NegativeEdgeCycle1", true},
+		// {"ManberFig7.18(p.224)", false},
+		// {"ManberFig7.21(p.229)", false},
 	}
 	for _, tt := range tests {
 		var g Graph
@@ -120,6 +122,36 @@ func AllPairsShortestPathsTest(t *testing.T) {
 		for _, v := range got {
 			t.Logf("%v", v)
 		}
+		negativeWeightCycle := DetectNegativeWeightCycle(got)
+		// t.Logf("%+v", negativeWeightCycle)
+		if negativeWeightCycle != tt.negativeWeightCycle {
+			t.Errorf("FAIL DetectNegativeWeightCycle(got). got/want: %t/%t", negativeWeightCycle, tt.negativeWeightCycle)
+		}
+	}
+}
+func FindNewMCSTTtest(t *testing.T) {
+	tests := []struct {
+		name string
+		want []UndirectedEdge
+	}{
+		// {"ManberFig7.18(p.224)", []UndirectedEdge{{"a", "v", 1}, {"e", "h", 1}, {"a", "c", 2}, {"d", "e", 2}, {"f", "g", 2}, {"b", "e", 3}, {"g", "h", 3}, {"c", "d", 4}}},
+		// {"ManberFig7.21(p.229)", []UndirectedEdge{{"a", "v", 1}, {"a", "c", 2}, {"b", "e", 3}, {"c", "d", 4}, {"e", "h", 5}, {"b", "v", 6}, {"c", "f", 10}, {"g", "h", 11}}},
+		// {"YT_D.Sutantyo 8.1", []UndirectedEdge{{"4", "5", 1}, {"2", "3", 2}, {"2", "5", 3}, {"1", "2", 4}}},
+		{"YT_WilliamFisetPrims1", []UndirectedEdge{{"1", "3", -2}, {"0", "2", 0}, {"5", "6", 1}, {"3", "5", 2}, {"1", "4", 3}, {"0", "3", 5}}},
+		// {"YT_WilliamFisetPrims2", []UndirectedEdge{{"1", "4", 0}, {"0", "2", 1}, {"4", "5", 1}, {"2", "3", 2}, {"3", "5", 2}, {"5", "6", 6}, {"4", "7", 8}}},
+	}
+	for _, tt := range tests {
+		var g Graph
+		var ok bool
+		if g, ok = MyGraphs[tt.name]; !ok {
+			t.Errorf("Graph %s does not exits", tt.name)
+			return
+		}
+		mcst := g.MCST()
+
+		newMcst := g.FindNewMCST(mcst, UndirectedEdge{a: "2", b: "5", weight: 1})
+		t.Logf("%+v", newMcst)
+
 	}
 }
 func MCSTTest(t *testing.T) {
@@ -131,9 +163,11 @@ func MCSTTest(t *testing.T) {
 		name string
 		want []UndirectedEdge
 	}{
-		// {"ManberFig7.18(p.224)", []UndirectedEdge{{"a", "v", 1}, {"e", "h", 1}, {"a", "c", 2}, {"d", "e", 2}, {"f", "g", 2}, {"b", "e", 3}, {"g", "h", 3}, {"c", "d", 4}}},
-		// {"ManberFig7.21(p.229)", []UndirectedEdge{{"a", "v", 1}, {"a", "c", 2}, {"b", "e", 3}, {"c", "d", 4}, {"e", "h", 5}, {"b", "v", 6}, {"c", "f", 10}, {"g", "h", 11}}},
+		{"ManberFig7.18(p.224)", []UndirectedEdge{{"a", "v", 1}, {"e", "h", 1}, {"a", "c", 2}, {"d", "e", 2}, {"f", "g", 2}, {"b", "e", 3}, {"g", "h", 3}, {"c", "d", 4}}},
+		{"ManberFig7.21(p.229)", []UndirectedEdge{{"a", "v", 1}, {"a", "c", 2}, {"b", "e", 3}, {"c", "d", 4}, {"e", "h", 5}, {"b", "v", 6}, {"c", "f", 10}, {"g", "h", 11}}},
 		{"YT_D.Sutantyo 8.1", []UndirectedEdge{{"4", "5", 1}, {"2", "3", 2}, {"2", "5", 3}, {"1", "2", 4}}},
+		{"YT_WilliamFisetPrims1", []UndirectedEdge{{"1", "3", -2}, {"0", "2", 0}, {"5", "6", 1}, {"3", "5", 2}, {"1", "4", 3}, {"0", "3", 5}}},
+		{"YT_WilliamFisetPrims2", []UndirectedEdge{{"1", "4", 0}, {"0", "2", 1}, {"4", "5", 1}, {"2", "3", 2}, {"3", "5", 2}, {"5", "6", 6}, {"4", "7", 8}}},
 	}
 	for _, tt := range tests {
 		var g Graph
@@ -144,11 +178,19 @@ func MCSTTest(t *testing.T) {
 		}
 		got := g.MCST()
 		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("FAIL got/want\n%v\n%v", got, tt.want)
+			t.Errorf("FAIL (Prims) got/want\n%v\n%v", got, tt.want)
 		}
-		t.Logf("%v", got)
+		// t.Logf("%v", got)
 		got = g.Kruskal()
-		t.Logf("%v", got)
+		if !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("FAIL (Kruskal) got/want\n%v\n%v", got, tt.want)
+		}
+		got = g.HeapPrims()
+		if !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("FAIL (Prim's) got/want\n%v\n%v", got, tt.want)
+		}
+
+		// t.Logf("%v", got)
 	}
 }
 func DijkstrasTest(t *testing.T) {
@@ -337,6 +379,25 @@ func initMyGraphs() {
 	m[name] = NewGraph(name, []Edge{{"a", "b", 5}, {"a", "c", 1}, {"c", "b", 2}})
 	name = "Claude2"
 	m[name] = NewGraph(name, []Edge{{"a", "b", 1}, {"a", "c", 2}, {"a", "d", 3}, {"b", "e", 10}, {"c", "e", 1}, {"d", "e", 1}})
+
+	name = "NegativeEdgeCycle1"
+	m[name] = NewGraph(name, []Edge{{"a", "b", 1}, {"b", "c", 1}, {"c", "a", -10}})
+
+	name = "YT_WilliamFisetPrims1" // https://www.youtube.com/watch?v=jsmMtJpPnhU&t=158s
+	m[name] = NewGraph(name, []Edge{{"0", "1", 9}, {"0", "2", 0}, {"0", "3", 5}, {"0", "5", 7},
+		{"1", "3", -2}, {"1", "4", 3}, {"1", "6", 4},
+		{"2", "5", 6},
+		{"3", "5", 2}, {"3", "6", 3},
+		{"4", "6", 6},
+		{"5", "6", 1}})
+	name = "YT_WilliamFisetPrims2" // https://www.youtube.com/watch?v=jsmMtJpPnhU&t=158s
+	m[name] = NewGraph(name, []Edge{{"0", "1", 10}, {"0", "2", 1}, {"0", "3", 4},
+		{"1", "2", 3}, {"1", "4", 0},
+		{"2", "3", 2}, {"2", "5", 8},
+		{"3", "5", 2}, {"3", "6", 7},
+		{"4", "5", 1}, {"4", "7", 8},
+		{"5", "6", 6}, {"5", "7", 9},
+		{"6", "7", 12}})
 
 	name = "ch7_slides_scc" // file:///C:\Users\FIJUSAU\OneDrive%20-%20ABB\courses\Vaihto\TaiwanTech\algorithms_2024_material\slides\ch7_slides_scc.pptx
 	m[name] = NewGraph(name, []Tuple{{"a", "b"}, {"a", "h"},

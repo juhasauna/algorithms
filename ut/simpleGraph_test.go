@@ -21,21 +21,6 @@ func Test_simpleGraph(t *testing.T) {
 	}
 }
 
-// func BuildDFSTreeTest(t *testing.T) {
-
-//		tests := []struct {
-//			name      string
-//			startNode string
-//		}{
-//			// {"triangle", "a"},
-//			{"bowtie", "a"},
-//		}
-//		for _, tt := range tests {
-//			g := SimpleGraphs[tt.name]
-//			got := g.BuildDFSTree(tt.startNode)
-//			got.Print()
-//		}
-//	}
 func DFSSimpleTest(t *testing.T) {
 	tests := []struct {
 		name      string

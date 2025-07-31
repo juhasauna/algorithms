@@ -22,10 +22,10 @@ func Test_ch6(t *testing.T) {
 		// {"mergeSort", mergeSortTest},
 		// {"FindMinAndMax", FindMinAndMaxTest},
 		// {"KthSmallestElement", KthSmallestElementTest},
-		// {"computeNext", computeNextTest},
+		{"computeNext", computeNextTest},
 		// {"stringMatch", stringMatchKMPTest},
 		// {"minimumEditDistance", minimumEditDistanceTest},
-		{"HW6_24_03", HW6_24_03_Test},
+		// {"HW6_24_03", HW6_24_03_Test},
 		// {"RoundRobinSchedule", RoundRobinScheduleTest},
 	}
 	for _, tt := range tests {
@@ -132,19 +132,24 @@ func minimumEditDistanceTest(t *testing.T) {
 
 func stringMatchKMPTest(t *testing.T) {
 	tests := []struct {
-		name  string
-		text1 string
-		text2 string
-		want  int
+		name   string
+		from   string
+		search string
+		want   int
 	}{
-		// {"Manber exp.","xyxxyxyxyyxyxyxyyxyxyxx", "xyxyyxyxyxx", 13},
-		// {"ByteQuest VOD exp.","BABABABABCABABCABAB", "ABABCABAB", 6},
+		{"Manber exp.", "xyxxyxyxyyxyxyxyyxyxyxx", "xyxyyxyxyxx", 13},
+		{"ByteQuest VOD exp.", "BABABABABCABABCABAB", "ABABCABAB", 6},
+		{"simple match", "AB", "A", 0},
+		{"no match", "AAABBB", "AABA", -1},
+		{"no match2", "AABA", "AAABBB", -1},
+		{"simple match", "A", "A", 0},
+		// {"simple match", "A", "AA", 1},
 	}
 	for _, tt := range tests {
 		x := CH6{}
-		got := x.stringMatchKMP(tt.text1, tt.text2)
+		got := x.stringMatchKMP(tt.from, tt.search)
 		if got != tt.want {
-			t.Errorf("FAIL got: %d, want: %d", got, tt.want)
+			t.Errorf("FAIL (%s) got: %d, want: %d", tt.name, got, tt.want)
 		} else {
 			t.Logf("SUCCESS got: %v", got)
 		}
@@ -153,20 +158,21 @@ func stringMatchKMPTest(t *testing.T) {
 }
 func computeNextTest(t *testing.T) {
 	tests := []struct {
-		name string
-		text string
-		want []int
+		name     string
+		text     string
+		optimize bool
+		want     []int
 	}{
-		// {"xyxyy", []int{-1, 0, 0, 1, 2}},
-		// {"xyxyyx", []int{-1, 0, 0, 1, 2, 0}},
-		// {"xyxyyxyxyxx", []int{-1, 0, 0, 1, 2, 0, 1, 2, 3, 4, 3}},
-		// {"ABABCABAB", []int{-1, 0, 0, 1, 2, 0, 1, 2, 3}},
-		{"24/hw6/5", "abaababaa", []int{-1, 0, 0, 1, 1, 2, 3, 2, 3}},
+		// {"", "xyxyy", false, []int{-1, 0, 0, 1, 2}},
+		// {"", "xyxyyx", false, []int{-1, 0, 0, 1, 2, 0}},
+		// {"", "xyxyyxyxyxx", false, []int{-1, 0, 0, 1, 2, 0, 1, 2, 3, 4, 3}},
+		// {"", "ABABCABAB", false, []int{-1, 0, 0, 1, 2, 0, 1, 2, 3}},
+		// {"24/hw6/5", "abaababaa", false, []int{-1, 0, 0, 1, 1, 2, 3, 2, 3}},
+		{"24/hw6/5 optimized", "abaababaa", true, []int{-1, 0, -1, 1, 0, -1, 3, -1, 1}},
 	}
 	for _, tt := range tests {
 		x := CH6{}
-		got := x.computeKMPNext(tt.text)
-		// got := x.computeKMPNext(tt.text)
+		got := x.computeKMPNext(tt.text, tt.optimize)
 		if !slices.Equal(got, tt.want) {
 			t.Errorf("FAIL got: %v, want: %v", got, tt.want)
 		} else {

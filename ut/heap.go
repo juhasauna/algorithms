@@ -335,6 +335,7 @@ func (x *Heap) Heapify() {
 type DijkstraNode struct {
 	Name   string
 	Weight int
+	Edge   UndirectedEdge // Using this to keep track of Prim's edges.
 }
 
 type DijkstraHeap struct {
@@ -351,7 +352,8 @@ func (x *DijkstraHeap) Heapify() {
 	}
 	lastParentNode := (n / 2) - 1
 	for i := lastParentNode; i >= 0; i-- {
-		x.siftDown(i, n-1)
+		// x.siftDown(i, n-1)
+		x.heapifyDown(i)
 	}
 	if !x.IsMinHeap() {
 		panic("Heapify() failed: NOT MIN HEAP")
@@ -359,29 +361,31 @@ func (x *DijkstraHeap) Heapify() {
 
 }
 
-func (x *DijkstraHeap) siftHelper(parent, end int) int {
-	leftChild := x.LeftChild(parent)
-	if leftChild > end {
-		return -1
-	}
-	newParent := leftChild
-	rightChild := leftChild + 1
-	if rightChild <= end {
-		if x.Imp[leftChild].Weight >= x.Imp[rightChild].Weight {
-			newParent = rightChild
-		}
-	}
-	if x.Imp[parent].Weight > x.Imp[newParent].Weight {
-		x.Swap(parent, newParent)
-	}
+// func (x *DijkstraHeap) siftHelper(parent, end int) int {
+// 	leftChild := x.LeftChild(parent)
+// 	if leftChild > end {
+// 		return -1
+// 	}
+// 	newParent := leftChild
+// 	rightChild := leftChild + 1
+// 	if rightChild <= end {
+// 		if x.Imp[leftChild].Weight >= x.Imp[rightChild].Weight {
+// 			newParent = rightChild
+// 		}
+// 	}
+// 	if x.Imp[parent].Weight > x.Imp[newParent].Weight {
+// 		x.Swap(parent, newParent)
+// 	}
 
-	return newParent
-}
-func (h *DijkstraHeap) siftDown(parent, end int) {
-	for parent != -1 && !h.IsMinHeap() {
-		parent = h.siftHelper(parent, end)
-	}
-}
+//		return newParent
+//	}
+//
+// func (h *DijkstraHeap) siftDown(parent, end int) { // AKA bubble-down, heapifyDown
+//
+//		for parent != -1 && !h.IsMinHeap() {
+//			parent = h.siftHelper(parent, end)
+//		}
+//	}
 func (h *DijkstraHeap) ImpString() string {
 	s := ""
 	for _, v := range h.Imp {
@@ -434,11 +438,12 @@ func (h *DijkstraHeap) Extract() *DijkstraNode {
 	delete(h.nodeIndexes, head.Name)
 	h.Imp = h.Imp[:end]
 	end--
-	parent := 0
 
-	for parent != -1 {
-		parent = h.siftHelper(parent, end)
-	}
+	h.heapifyDown(0)
+	// parent := 0
+	// for parent != -1 {
+	// 	parent = h.siftHelper(parent, end)
+	// }
 	// fmt.Printf("AFT Exctract: %s, nodeIndexes: %+v\n", h.ImpString(), h.nodeIndexes)
 	if !h.IsMinHeap() {
 		panic("DijkstraHeap: not a min heap.")
@@ -459,19 +464,13 @@ func NewDijkstraHeap(seq []*DijkstraNode) DijkstraHeap {
 		nodeIndexes[node.Name] = i
 	}
 	h := DijkstraHeap{Imp: seq, nodeIndexes: nodeIndexes}
-	fmt.Printf("BEF Heapify: %v\n", h.nodeIndexes)
+	// fmt.Printf("BEF Heapify: %v\n", h.nodeIndexes)
 	h.Heapify()
-	fmt.Printf("AFT Heapify: %v\n", h.nodeIndexes)
+	// fmt.Printf("AFT Heapify: %v\n", h.nodeIndexes)
 	if !h.IsMinHeap() {
 		panic("NewDijkstraHeap not a min heap")
 	}
 	return h
-}
-
-func (h *DijkstraHeap) DecreaseKey(node *DijkstraNode) {
-	index := h.nodeIndexes[node.Name]
-	h.Imp[index].Weight = node.Weight
-	h.HeapifyUp(index)
 }
 
 func (h *DijkstraHeap) GetNode(name string) *DijkstraNode {
@@ -480,22 +479,115 @@ func (h *DijkstraHeap) GetNode(name string) *DijkstraNode {
 	}
 	return nil
 }
+func (h *DijkstraHeap) DecreaseKey(node *DijkstraNode) {
+	index := h.nodeIndexes[node.Name]
+	h.Imp[index] = node
+	h.heapifyUp(index)
+}
+
+func (h *DijkstraHeap) UpdateNode(node *DijkstraNode) {
+	if _, ok := h.nodeIndexes[node.Name]; !ok {
+		h.Insert(node)
+		return
+	}
+	h.DecreaseKey(node)
+}
 func (h *DijkstraHeap) Insert(node *DijkstraNode) {
 	index := h.Size()
 	h.Imp = append(h.Imp, node)
 	h.nodeIndexes[node.Name] = index
 
-	fmt.Printf("Insert: Imp: %s, node: %+v, index: %d\n", h.ImpString(), *node, index)
-	h.HeapifyUp(index)
+	// fmt.Printf("Insert: Imp: %s, node: %+v, index: %d\n", h.ImpString(), *node, index)
+	h.heapifyUp(index)
 }
 
-func (h *DijkstraHeap) HeapifyUp(index int) {
-	for index > 0 {
-		parent := (index - 1) / 2
-		if h.Imp[parent].Weight <= h.Imp[index].Weight {
+func (h *DijkstraHeap) heapifyUp(child int) {
+	for child > 0 {
+		parent := (child - 1) / 2
+		if h.Imp[parent].Weight <= h.Imp[child].Weight {
 			return
 		}
-		h.Swap(parent, index)
-		index = parent
+		h.Swap(parent, child)
+		child = parent
+	}
+}
+
+func (h *DijkstraHeap) heapifyDown(parent int) { // AKA bubbleDown, siftDown
+	lastIndex := h.Size() - 1
+	for {
+		leftChild := h.LeftChild(parent)
+		if leftChild > lastIndex {
+			return
+		}
+		newParent := leftChild
+		rightChild := leftChild + 1
+		if rightChild <= lastIndex {
+			if h.Imp[leftChild].Weight >= h.Imp[rightChild].Weight {
+				newParent = rightChild // Preferring rightChild on equal weights. This should be consistent with heapifyUp.
+			}
+		}
+		if h.Imp[parent].Weight <= h.Imp[newParent].Weight {
+			return
+		}
+		h.Swap(parent, newParent)
+		parent = newParent
+		// if h.Imp[parent].Weight > h.Imp[newParent].Weight {
+		// 	h.Swap(parent, newParent)
+		// } else {
+		// 	return // If the weights are the same we're done.
+		// }
+		// parent = newParent
+	}
+}
+
+func (x DijkstraHeap) PrintTree() {
+	if x.Size() == 0 {
+		fmt.Println("(empty heap)")
+		return
+	}
+	rightChildIndex := x.RightChild(0)
+	if rightChildIndex < x.Size() {
+		x.printNode(rightChildIndex, "", false)
+	}
+	fmt.Println(x.Imp[0])
+	leftChildIndex := x.LeftChild(0)
+	if leftChildIndex < x.Size() {
+		x.printNode(leftChildIndex, "", true)
+	}
+}
+
+func (x DijkstraHeap) printNode(index int, prefix string, isLeft bool) {
+	if index >= x.Size() {
+		return
+	}
+
+	rightChildIndex := x.RightChild(index)
+	if rightChildIndex < len(x.Imp) {
+		newPrefix := prefix
+		if isLeft {
+			newPrefix += "│   "
+		} else {
+			newPrefix += "    "
+		}
+		x.printNode(rightChildIndex, newPrefix, false)
+	}
+
+	fmt.Print(prefix)
+	if isLeft {
+		fmt.Print("└── ")
+	} else {
+		fmt.Print("┌── ")
+	}
+	fmt.Println(x.Imp[index])
+
+	leftChildIndex := x.LeftChild(index)
+	if leftChildIndex < len(x.Imp) {
+		newPrefix := prefix
+		if isLeft {
+			newPrefix += "    "
+		} else {
+			newPrefix += "│   "
+		}
+		x.printNode(leftChildIndex, newPrefix, true)
 	}
 }
