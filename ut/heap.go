@@ -8,21 +8,17 @@ import (
 )
 
 type Heap struct {
-	Imp   []int // Implicit representation.
-	Name  string
-	t     *testing.T
-	iters int
-	IsMin bool
+	Imp        []int // Implicit representation.
+	Name       string
+	t          *testing.T
+	iters      int
+	IsMin      bool
+	countSwaps bool
 }
 
 func (x Heap) Logf(format string, a ...any) {
 	if x.t != nil {
 		x.t.Logf(format, a...)
-	}
-}
-func (x *Heap) IncrementIters() {
-	if x.t != nil {
-		x.iters++
 	}
 }
 func (x Heap) Fatalf(format string, a ...any) {
@@ -58,8 +54,11 @@ func (x *Heap) Head() int {
 func (x *Heap) Size() int {
 	return len(x.Imp)
 }
-func (x *Heap) Swap(i, j int) {
-	x.Imp[i], x.Imp[j] = x.Imp[j], x.Imp[i]
+func (h *Heap) Swap(i, j int) {
+	h.Imp[i], h.Imp[j] = h.Imp[j], h.Imp[i]
+	if h.countSwaps {
+		h.iters++
+	}
 }
 
 func (x *Heap) GetSortedValues(descending bool) []int {
@@ -95,18 +94,41 @@ func (h Heap) sortHelper(end int) []int {
 	h.Swap(0, end)
 	end--
 
-	// parent := 0
-	// for parent != -1 {
-	// 	parent = h.siftHelper(parent, end)
-	// }
 	h.heapifyDown(0, end)
 	return h.sortHelper(end)
 }
 
-// Top-down insertion
+// Top-down insertion: O(n*log n)
 func (x *Heap) InsertAll(seq []int) {
 	for _, v := range seq {
 		x.Insert(v)
+	}
+}
+
+func (h *Heap) Insert(value int) {
+	child := h.Size() + 1
+	h.Imp = append(h.Imp, value)
+	h.heapifyUp(child)
+}
+func (h *Heap) heapifyUp(childIndex int) {
+	compare := func(a, b int) bool {
+		c := h.Imp[a] < h.Imp[b]
+		if h.IsMin {
+			c = !c
+		}
+		return c
+	}
+	parentIndex := childIndex / 2
+	for parentIndex > 0 {
+		pi, ci := parentIndex-1, childIndex-1
+
+		if compare(pi, ci) {
+			h.Swap(pi, ci)
+			childIndex = parentIndex
+			parentIndex = childIndex / 2
+			continue
+		}
+		break
 	}
 }
 
@@ -133,46 +155,6 @@ func (x *Heap) VerifyHeap() {
 	} else if !x.IsMin && !x.IsMaxHeap() {
 		x.PrintTree()
 		x.Fatal("not MAX heap")
-	}
-}
-func (x *Heap) Insert_maxOnly(value int) {
-	child := x.Size() + 1
-	x.Imp = append(x.Imp, value)
-	parent := child / 2
-	for parent > 0 {
-		pi := parent - 1
-		ci := child - 1
-		if x.Imp[pi] < x.Imp[ci] {
-			x.Imp[pi], x.Imp[ci] = x.Imp[ci], x.Imp[pi]
-			child = parent
-			parent = parent / 2
-		} else {
-			break
-		}
-	}
-}
-
-func (x *Heap) Insert(value int) {
-	compare := func(a, b int) bool {
-		c := x.Imp[a] < x.Imp[b]
-		if x.IsMin {
-			c = !c
-		}
-		return c
-	}
-	child := x.Size() + 1
-	x.Imp = append(x.Imp, value)
-	parent := child / 2
-	for parent > 0 {
-		pi := parent - 1
-		ci := child - 1
-		if compare(pi, ci) {
-			x.Swap(pi, ci)
-			child = parent
-			parent = parent / 2
-		} else {
-			break
-		}
 	}
 }
 
@@ -270,6 +252,26 @@ func (x Heap) IsMinHeap() bool {
 	return true
 }
 
+// Bottom-up insertion // O(n) time complexity
+func (h *Heap) Heapify() {
+
+	n := h.Size()
+	if n <= 1 {
+		return
+	}
+	lastParent := (n / 2) - 1
+	for i := lastParent; i >= 0; i-- {
+		h.heapifyDown(i, n-1)
+	}
+	if h.IsMin && !h.IsMinHeap() {
+		panic("Heapify() failed: NOT MIN HEAP")
+	}
+	if !h.IsMin && !h.IsMaxHeap() {
+		h.PrintTree()
+		panic("Heapify() failed: NOT MAX HEAP")
+	}
+}
+
 func (h *Heap) heapifyDown(parent, lastIndex int) {
 	compare := func(a, b int) bool {
 		c := h.Imp[a] <= h.Imp[b]
@@ -287,37 +289,15 @@ func (h *Heap) heapifyDown(parent, lastIndex int) {
 		newParent := leftChild
 		rightChild := leftChild + 1
 		if rightChild <= lastIndex {
-			// if h.Imp[leftChild] >= h.Imp[rightChild] {
 			if compare(leftChild, rightChild) {
-				newParent = rightChild // Preferring rightChild on equal weights. This should be consistent with heapifyUp.
+				newParent = rightChild // NOTE: Preference on equal weights. This should be consistent with heapifyUp.
 			}
 		}
-		// if h.Imp[parent] <= h.Imp[newParent] {
 		if compare(newParent, parent) {
 			return
 		}
 		h.Swap(parent, newParent)
 		parent = newParent
-	}
-}
-
-// Bottom-up insertion
-func (h *Heap) Heapify() {
-	// O(n) time complexity
-	n := h.Size()
-	if n <= 1 {
-		return
-	}
-	lastParentNode := (n / 2) - 1
-	for i := lastParentNode; i >= 0; i-- {
-		h.heapifyDown(i, n-1)
-	}
-	if h.IsMin && !h.IsMinHeap() {
-		panic("Heapify() failed: NOT MIN HEAP")
-	}
-	if !h.IsMin && !h.IsMaxHeap() {
-		h.PrintTree()
-		panic("Heapify() failed: NOT MAX HEAP")
 	}
 }
 
@@ -459,6 +439,7 @@ func (h *DijkstraHeap) Insert(node *DijkstraNode) {
 	h.heapifyUp(index)
 }
 
+// heapifyUp should be used After inserting a new element
 func (h *DijkstraHeap) heapifyUp(child int) {
 	for child > 0 {
 		parent := (child - 1) / 2
@@ -470,6 +451,7 @@ func (h *DijkstraHeap) heapifyUp(child int) {
 	}
 }
 
+// heapifyDown should be used after the root is removed or replaced.
 func (h *DijkstraHeap) heapifyDown(parent int) { // AKA bubbleDown, siftDown
 	lastIndex := h.Size() - 1
 	for {

@@ -13,8 +13,8 @@ func Test_heap(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
-		// {"insert", insertTest},
-		{"heapSort", heapSortTest},
+		{"insert", insertTest},
+		// {"heapSort", heapSortTest},
 		// {"print", printTest},
 		{"heapify", heapifyTest},
 		// {"IsMaxHeap", IsMaxHeapTest},
@@ -24,6 +24,14 @@ func Test_heap(t *testing.T) {
 			tt.f(t)
 		})
 	}
+}
+
+func makeWorstBestCaseInputArray(count int) []int {
+	result := []int{}
+	for i := range count {
+		result = append(result, i)
+	}
+	return result
 }
 
 func IsMaxHeapTest(t *testing.T) {
@@ -47,15 +55,21 @@ func heapifyTest(t *testing.T) {
 		seq   []int
 		isMin bool
 	}{
-		{"hello", td.Test11, false},
-		{"hello", td.Test11, true},
-		{"TDManberHeap", TDManberHeap, false},
-		{"TDManberHeap", TDManberHeap, true},
+		// {"Test11", td.Test11, false},
+		// {"Test11", td.Test11, true},
+		// {"TDManberHeap", TDManberHeap, false},
+		// {"TDManberHeap", TDManberHeap, true},
+		// {"JuhaHeapBigger", JuhaHeapBigger, true},
+		// {"TestDdata4813", TestDdata4813, true},
+		// {"worstCase", makeWorstBestCaseInputArray(100), false},
+		// {"worstCase", makeWorstBestCaseInputArray(100), false},
+		{"NTU2024mid7", NTU2024mid7, false},
 	}
 
 	for _, tt := range tests {
-		h := Heap{Imp: tt.seq, t: t, IsMin: tt.isMin}
+		h := Heap{Imp: tt.seq, t: t, IsMin: tt.isMin, countSwaps: true}
 		h.Heapify()
+		t.Logf("Heapify iters: %d", h.iters)
 		if h.IsMin && !h.IsMinHeap() {
 			t.Fatalf("NOT MIN HEAP")
 		} else if !h.IsMin && !h.IsMaxHeap() {
@@ -63,7 +77,6 @@ func heapifyTest(t *testing.T) {
 		}
 	}
 }
-
 func heapSortTest(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -107,14 +120,20 @@ func insertTest(t *testing.T) {
 		seq   []int
 		isMin bool
 	}{
-		{"hello", td.Test11, false},
-		{"hello", td.Test11, true},
+		// {"hello", td.Test11, false},
+		// {"hello", td.Test11, true},
+		// {"TDManberHeap", TDManberHeap, true},
+		// {"TDManberHeap", TDManberHeap, false},
+		// {"JuhaHeapBigger", JuhaHeapBigger, true},
+		// {"TestDdata4813", TestDdata4813, true},
+		{"worstCase", makeWorstBestCaseInputArray(100), false},
 	}
 
 	for _, tt := range tests {
-		h := Heap{IsMin: tt.isMin, t: t}
+		h := Heap{IsMin: tt.isMin, t: t, countSwaps: true}
 		h.InsertAll(tt.seq)
-		h.PrintTree()
+		t.Logf("InsertAll iters: %d", h.iters)
+		// h.PrintTree()
 		ok := false
 		if tt.isMin {
 			ok = h.IsMinHeap()
