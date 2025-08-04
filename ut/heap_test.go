@@ -13,10 +13,10 @@ func Test_heap(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
-		{"insert", insertTest},
-		// {"heapSort", heapSortTest},
+		// {"insert", insertTest},
+		{"heapSort", heapSortTest},
 		// {"print", printTest},
-		// {"heapify", heapifyTest},
+		{"heapify", heapifyTest},
 		// {"IsMaxHeap", IsMaxHeapTest},
 	}
 	for _, tt := range tests {
@@ -109,7 +109,6 @@ func insertTest(t *testing.T) {
 	}{
 		{"hello", td.Test11, false},
 		{"hello", td.Test11, true},
-		// {"hello", td.Test12},
 	}
 
 	for _, tt := range tests {

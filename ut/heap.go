@@ -87,18 +87,20 @@ func (x Heap) SortInplace() []int {
 	return x.sortHelper(x.Size() - 1)
 }
 
-func (x Heap) sortHelper(end int) []int {
+func (h Heap) sortHelper(end int) []int {
 	if end < 1 {
-		return x.Imp
+		return h.Imp
 	}
 
-	x.Swap(0, end)
+	h.Swap(0, end)
 	end--
-	parent := 0
-	for parent != -1 {
-		parent = x.siftHelper(parent, end)
-	}
-	return x.sortHelper(end)
+
+	// parent := 0
+	// for parent != -1 {
+	// 	parent = h.siftHelper(parent, end)
+	// }
+	h.heapifyDown(0, end)
+	return h.sortHelper(end)
 }
 
 // Top-down insertion
@@ -108,23 +110,19 @@ func (x *Heap) InsertAll(seq []int) {
 	}
 }
 
-func (x *Heap) Extract() int {
-	if x.Size() == 0 {
-		x.t.Fatal("cannot Extract() from empty heap")
+func (h *Heap) Extract() int {
+	if h.Size() == 0 {
+		h.t.Fatal("cannot Extract() from empty heap")
 	}
-	head := x.Head()
+	head := h.Head()
 
-	end := x.Size() - 1
-	x.Imp[0] = x.Imp[end]
-	x.Imp = x.Imp[:end]
+	end := h.Size() - 1
+	h.Imp[0] = h.Imp[end]
+	h.Imp = h.Imp[:end]
 	end--
-	// x.Logf("start Extract: head: %d, Imp: %v\n", head, x.Imp)
-	parent := 0
 
-	for parent != -1 {
-		parent = x.siftHelper(parent, end)
-	}
-	x.VerifyHeap()
+	h.heapifyDown(0, end)
+	h.VerifyHeap()
 	return head
 }
 
@@ -272,62 +270,53 @@ func (x Heap) IsMinHeap() bool {
 	return true
 }
 
-func (x *Heap) siftHelper(parent, end int) int {
+func (h *Heap) heapifyDown(parent, lastIndex int) {
 	compare := func(a, b int) bool {
-		c := x.Imp[a] < x.Imp[b]
-		if x.IsMin {
+		c := h.Imp[a] <= h.Imp[b]
+		if h.IsMin {
 			c = !c
 		}
 		return c
 	}
-	compareEq := func(a, b int) bool {
-		c := x.Imp[a] <= x.Imp[b]
-		if x.IsMin {
-			c = !c
+
+	for {
+		leftChild := h.LeftChild(parent)
+		if leftChild > lastIndex {
+			return
 		}
-		return c
-	}
-	x.IncrementIters()
-	leftChild := x.LeftChild(parent)
-	if leftChild > end {
-		return -1
-	}
-	newParent := leftChild
-	rightChild := leftChild + 1
-	if rightChild <= end {
-		if compare(leftChild, rightChild) {
-			newParent = rightChild
+		newParent := leftChild
+		rightChild := leftChild + 1
+		if rightChild <= lastIndex {
+			// if h.Imp[leftChild] >= h.Imp[rightChild] {
+			if compare(leftChild, rightChild) {
+				newParent = rightChild // Preferring rightChild on equal weights. This should be consistent with heapifyUp.
+			}
 		}
-	}
-	if compareEq(newParent, parent) {
-		return -1
-	}
-	x.Swap(parent, newParent)
-	// x.Logf("parent: %d/%d, swap: %d/%d, heap: %v", parent, x.Imp[parent], newParent, x.Imp[newParent], x.Imp)
-	return newParent
-}
-func (x *Heap) siftDown(parent, end int) {
-	for parent != -1 {
-		parent = x.siftHelper(parent, end)
+		// if h.Imp[parent] <= h.Imp[newParent] {
+		if compare(newParent, parent) {
+			return
+		}
+		h.Swap(parent, newParent)
+		parent = newParent
 	}
 }
 
 // Bottom-up insertion
-func (x *Heap) Heapify() {
+func (h *Heap) Heapify() {
 	// O(n) time complexity
-	n := x.Size()
+	n := h.Size()
 	if n <= 1 {
 		return
 	}
 	lastParentNode := (n / 2) - 1
 	for i := lastParentNode; i >= 0; i-- {
-		x.siftDown(i, n-1)
+		h.heapifyDown(i, n-1)
 	}
-	if x.IsMin && !x.IsMinHeap() {
+	if h.IsMin && !h.IsMinHeap() {
 		panic("Heapify() failed: NOT MIN HEAP")
 	}
-	if !x.IsMin && !x.IsMaxHeap() {
-		x.PrintTree()
+	if !h.IsMin && !h.IsMaxHeap() {
+		h.PrintTree()
 		panic("Heapify() failed: NOT MAX HEAP")
 	}
 }
@@ -352,7 +341,6 @@ func (x *DijkstraHeap) Heapify() {
 	}
 	lastParentNode := (n / 2) - 1
 	for i := lastParentNode; i >= 0; i-- {
-		// x.siftDown(i, n-1)
 		x.heapifyDown(i)
 	}
 	if !x.IsMinHeap() {
@@ -361,31 +349,6 @@ func (x *DijkstraHeap) Heapify() {
 
 }
 
-// func (x *DijkstraHeap) siftHelper(parent, end int) int {
-// 	leftChild := x.LeftChild(parent)
-// 	if leftChild > end {
-// 		return -1
-// 	}
-// 	newParent := leftChild
-// 	rightChild := leftChild + 1
-// 	if rightChild <= end {
-// 		if x.Imp[leftChild].Weight >= x.Imp[rightChild].Weight {
-// 			newParent = rightChild
-// 		}
-// 	}
-// 	if x.Imp[parent].Weight > x.Imp[newParent].Weight {
-// 		x.Swap(parent, newParent)
-// 	}
-
-//		return newParent
-//	}
-//
-// func (h *DijkstraHeap) siftDown(parent, end int) { // AKA bubble-down, heapifyDown
-//
-//		for parent != -1 && !h.IsMinHeap() {
-//			parent = h.siftHelper(parent, end)
-//		}
-//	}
 func (h *DijkstraHeap) ImpString() string {
 	s := ""
 	for _, v := range h.Imp {
@@ -440,11 +403,6 @@ func (h *DijkstraHeap) Extract() *DijkstraNode {
 	end--
 
 	h.heapifyDown(0)
-	// parent := 0
-	// for parent != -1 {
-	// 	parent = h.siftHelper(parent, end)
-	// }
-	// fmt.Printf("AFT Exctract: %s, nodeIndexes: %+v\n", h.ImpString(), h.nodeIndexes)
 	if !h.IsMinHeap() {
 		panic("DijkstraHeap: not a min heap.")
 	}
@@ -531,12 +489,6 @@ func (h *DijkstraHeap) heapifyDown(parent int) { // AKA bubbleDown, siftDown
 		}
 		h.Swap(parent, newParent)
 		parent = newParent
-		// if h.Imp[parent].Weight > h.Imp[newParent].Weight {
-		// 	h.Swap(parent, newParent)
-		// } else {
-		// 	return // If the weights are the same we're done.
-		// }
-		// parent = newParent
 	}
 }
 
