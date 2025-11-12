@@ -83,7 +83,9 @@ func (g SimpleGraph) isDFSTree(node string, candidate SimpleGraph, marks []strin
 			if slices.Contains(marks, neighbor) {
 				continue
 			}
-			return g.isDFSTree(neighbor, candidate, marks)
+			if !g.isDFSTree(neighbor, candidate, marks) {
+				return false
+			}
 		}
 	}
 	if neighbors, ok := g[node]; !ok {

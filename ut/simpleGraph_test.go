@@ -10,8 +10,8 @@ func Test_simpleGraph(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
-		{"DFSSimple", DFSSimpleTest},
-		// {"IsDFSTreeTest", IsDFSTreeTest},
+		// {"DFSSimple", DFSSimpleTest},
+		{"IsDFSTreeTest", IsDFSTreeTest},
 		// {"BuildDFSTree", BuildDFSTreeTest},
 	}
 	for _, tt := range tests {
@@ -63,8 +63,8 @@ func IsDFSTreeTest(t *testing.T) {
 		candidateEdges []Tuple
 		want           bool
 	}{
-		// {"", "a", []Tuple{{"a", "b"}, {"b", "c"}, {"c", "d"}}, []Tuple{{"a", "b"}, {"b", "c"}, {"c", "d"}}, true},
-		{"", "a", []Tuple{{"a", "b"}, {"b", "c"}, {"b", "d"}, {"c", "d"}}, []Tuple{{"a", "b"}, {"b", "c"}, {"c", "d"}}, true},
+		{"", "a", []Tuple{{"a", "b"}, {"b", "c"}, {"c", "d"}}, []Tuple{{"a", "b"}, {"b", "c"}, {"c", "d"}}, true},
+		// {"", "a", []Tuple{{"a", "b"}, {"b", "c"}, {"b", "d"}, {"c", "d"}}, []Tuple{{"a", "b"}, {"b", "c"}, {"c", "d"}}, true},
 		// {"", "a", []Tuple{{"a", "b"}, {"b", "c"}, {"b", "d"}, {"c", "e"}, {"d", "f"}}, []Tuple{{"a", "b"}, {"b", "c"}, {"c", "a"}}, false},
 	}
 

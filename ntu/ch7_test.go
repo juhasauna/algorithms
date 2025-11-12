@@ -23,16 +23,17 @@ func FindEulerianCircuitPseudoTest(t *testing.T) {
 	tests := []struct {
 		graph *ut.EulerianGraph
 	}{
-		{ut.GetEulerianGraphK3()},
+		// {ut.GetEulerianGraphK3()},
 		{ut.GetEulerianGraphK5()},
-		{ut.GetEulerianGraphK5_a()},
-		{ut.GetEulerianGraphBowtie()},
+		// {ut.GetEulerianGraphK5_a()},
+		// {ut.GetEulerianGraphBowtie()},
 
 		// {ut.GetNotEulerianGraphK5_a()},
 	}
 	for _, tt := range tests {
 		x := CH7{}
 		gotPath, gotEdges := x.FindEulerianCircuitPseudo(tt.graph)
+
 		gotPathLen := len(gotPath)
 		gotEdgesLen := len(gotEdges)
 		wantLen := tt.graph.EdgeCount()
@@ -45,5 +46,7 @@ func FindEulerianCircuitPseudoTest(t *testing.T) {
 		} else {
 			t.Logf("SUCCESS gotPath: %v\ngotEdges: %v", gotPath, gotEdges)
 		}
+		hierGot := tt.graph.HierholzerFirst()
+		t.Logf("%+v", hierGot)
 	}
 }

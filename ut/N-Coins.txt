@@ -1,0 +1,67 @@
+N-Coins: Determine fake coin from 12 using a scale with 3 comparisons.
+
+Split coins into three piles: c1,c2,c3,c4 - ... - c9,c10,c11,c12
+
+Comparison 1: pile1 : pile2
+    if scale leans left then
+        // we know solution fake coin exists and it's not in pile 3
+        // and pile1 is lighter than pile2
+        Goto X
+    if scale leans right then
+        // we know solution fake coin exists and it's not in pile 3
+        // and pile2 is lighter than pile1
+        Goto Y
+    if scale balanced then
+        // solution is in pile3 OR there is no fake coin
+        Goto Z
+
+X:
+    pile1 = c1,c2,c5
+    pile2 = c3,c6,c7
+    pile3 = c4,c8
+    Comparison 2: pile1 : pile2
+    if scale leans left then
+        // fake coin is LIGHT and one of c1,c2
+        compare c1 and c2 and determine that the lighter one is the fake coin.
+    if scale leans right then
+        // fake coin is HEAVY and one of c6,c7
+        just compare c6 and c7 and the heavier is the fake coin
+    if scale balances then 
+        // fake coin is c4 or c8
+        compare c4:c8. If c4 is lighter then that is the fake one else it's c8
+
+Y: Analogous to X.
+
+Z:
+    Comparison 2 = (three known real coins e.g. c1,c2,c3) : c9,c10,c11
+
+    if scale balances then 
+        compare c12 with c1 and if it does not balance then
+            c12 is fake
+        else
+            no fake coins
+
+    if scale leans left then
+        // we know that one of the coins in c9,c10,c11 is a lighter coin
+        cmp = c9:c10
+        if leans left then
+            c10 is fake
+        if leans right then
+            c9 is fake
+        if balances c11 is fake
+
+    if scale leans right then
+        // we know that one of the coins in c9,c10,c11 is a heavier coin
+        cmp = c9:c10
+        if leans left then
+            c10 is fake
+        if leans right then
+            c9 is fake
+        if scale balances c11 is fake
+
+
+
+
+
+
+

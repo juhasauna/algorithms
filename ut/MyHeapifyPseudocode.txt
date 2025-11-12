@@ -1,0 +1,22 @@
+Algorithm MaxHeapify(input):
+    n := length(input)
+    last_parent := n / 2
+    i := last_parent
+    while i > 0:
+        HeapifyDown(input, i, n)
+        i--
+
+Algorithm HeapifyDown(input, i, n):
+    left_kid := 2*i
+    right_kid := left_kid+1
+
+    if left_kid > n: return
+    
+    new_parent := left_kid
+    if right_kid <= n:
+        if input[left_kid] < input[right_kid]: 
+            new_parent = right_kid
+
+    if input[new_parent] > input[i]: 
+        input.Swap(new_parent, i)
+        HeapifyDown(input, new_parent, n)

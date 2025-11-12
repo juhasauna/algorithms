@@ -35,7 +35,7 @@ func (x *NTU) hornersRule(a_i []float64, y float64) float64 {
 	return p
 }
 
-// Cp5/4 One-to-One Mapping
+// Cp5/4 One-to-One Mapping. (One-to-one = INJECTIVE)
 // 2023 HW4/1 Is it possible that the set S will become empty at the end of the algorithm? Show an example, or prove that it cannot happen.
 func (x *NTU) cp5MappingBijective(f map[int]int) []int {
 	if valid, example := ut.IsFunctionFullyDefined(f); !valid {
@@ -84,6 +84,7 @@ func (x NTU) degreesGreaterThan(m map[string][]string, k int) (bool, string) {
 }
 
 // Cp5 3 Maximal Induced Subgraph (Algorithm Max Ind Subgraph (G, k);)
+// Induced means we're removing a node(s) and all the edges to/from those nodes. But we're not allowed to remove other edges.
 func (x *NTU) maximalInducedSubgraphRecursive(m map[string][]string, k int) map[string][]string {
 	b, key := x.degreesGreaterThan(m, k)
 	if b {
@@ -155,36 +156,26 @@ func (x adjMatrix) validate() bool {
 	return true
 }
 
-// Cp5/5 Celebrity
+// Cp5/5 Celebrity // O(n)
 func (x *NTU) celebrityFromPseudo(m adjMatrix) int {
-	// O(n)
-	n := m.rowLen()
-	i := 0
-	j := 1
-	next := 2
-	for next <= n {
-		x.iters++
+	n, i, j := m.rowLen(), 0, 1
+	for next := 2; next <= n; next++ {
 		if m[i][j] == 1 {
 			i = next
 		} else {
 			j = next
 		}
-		next++
 	}
-	candidate := 0
+	candidate := i
 	if i == n {
 		candidate = j
-	} else {
-		candidate = i
 	}
 
 	m[candidate][candidate] = 0
-	for k := 0; k < n; k++ {
-		x.iters++
+	for k := range n {
 		if m[candidate][k] == 1 {
 			return -1
 		}
-		x.iters++
 		if m[k][candidate] == 0 {
 			if candidate != k {
 				return -1
@@ -293,21 +284,18 @@ func (x *NTU) computeBalanceFactors(n *bt.Node) {
 	n.ComputeBalanceFactors()
 }
 
-// Cp5/8 Maximum Consecutive Subsequence
+// Cp5/8 Maximum Consecutive Subsequence // Kadane's algorithm is O(n). Brute force in O(n^3)
 func (x *NTU) maximumConsequtiveSubsequence(seq []float64) float64 {
-	var globalMax float64 = 0
-	var suffixMax float64 = 0
-	subSeq := []float64{}
-	maxSubSeq := []float64{}
+	var globalMax, suffixMax float64
+	subSeq, maxSubSeq := []float64{}, []float64{}
 	for i, v := range seq {
-		if v+suffixMax > globalMax {
-			suffixMax = suffixMax + v
+		suffixMax += v
+		if suffixMax > globalMax {
 			globalMax = suffixMax
 			maxSubSeq = append(maxSubSeq, subSeq...)
 			maxSubSeq = append(maxSubSeq, v)
 			subSeq = []float64{}
-		} else if v+suffixMax > 0 {
-			suffixMax += v
+		} else if suffixMax > 0 {
 			subSeq = append(subSeq, v)
 		} else {
 			suffixMax = 0

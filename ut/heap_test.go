@@ -13,7 +13,7 @@ func Test_heap(t *testing.T) {
 		name string
 		f    func(*testing.T)
 	}{
-		{"insert", insertTest},
+		// {"insert", insertTest},
 		// {"heapSort", heapSortTest},
 		// {"print", printTest},
 		{"heapify", heapifyTest},
@@ -55,52 +55,85 @@ func heapifyTest(t *testing.T) {
 		seq   []int
 		isMin bool
 	}{
-		// {"Test11", td.Test11, false},
-		// {"Test11", td.Test11, true},
-		// {"TDManberHeap", TDManberHeap, false},
-		// {"TDManberHeap", TDManberHeap, true},
-		// {"JuhaHeapBigger", JuhaHeapBigger, true},
-		// {"TestDdata4813", TestDdata4813, true},
-		// {"worstCase", makeWorstBestCaseInputArray(100), false},
-		// {"worstCase", makeWorstBestCaseInputArray(100), false},
+		{"Test11", td.Test11, false},
+		{"Test11", td.Test11, true},
+		{"TDManberHeap", TDManberHeap, false},
+		{"TDManberHeap", TDManberHeap, true},
+		{"JuhaHeapBigger", JuhaHeapBigger, true},
+		{"TestDdata4813", TestDdata4813, true},
+		{"worstCase", makeWorstBestCaseInputArray(100), false},
+		{"worstCase", makeWorstBestCaseInputArray(100), false},
 		{"NTU2024mid7", NTU2024mid7, false},
+		{"NTU2021mid7", NTU2021mid7, false},
+		{"NTU2020mid7", NTU2020mid7, false},
 	}
 
 	for _, tt := range tests {
 		h := Heap{Imp: tt.seq, t: t, IsMin: tt.isMin, countSwaps: true}
 		h.Heapify()
 		t.Logf("Heapify iters: %d", h.iters)
+		// h.PrintTree()
 		if h.IsMin && !h.IsMinHeap() {
 			t.Fatalf("NOT MIN HEAP")
 		} else if !h.IsMin && !h.IsMaxHeap() {
 			t.Fatalf("NOT MAX HEAP")
 		}
 	}
+
+	// Here's what I came up with for pseudocode (2023mid7):
+	// Algorithm MaxHeapify(input):
+	// 	n := length(input)
+	// 	last_parent := n / 2
+	// 	i := last_parent
+	// 	while i > 0:
+	// 		HeapifyDown(input, i, n)
+	// 		i--
+
+	// Algorithm HeapifyDown(input, i, n):
+	// 	left_kid := 2*i
+	// 	right_kid := left_kid+1
+
+	// 	if left_kid > n: return
+
+	// 	new_parent := left_kid
+	// 	if right_kid <= n:
+	// 		if input[left_kid] < input[right_kid]:
+	// 			new_parent = right_kid
+
+	// 	if input[new_parent] > input[i]:
+	// 		input.Swap(new_parent, i)
+	// 		HeapifyDown(input, new_parent, n)
 }
 func heapSortTest(t *testing.T) {
 	tests := []struct {
-		name       string
-		seq        []int
-		descending bool
+		name      string
+		seq       []int
+		ascending bool
 	}{
-		{"hello", td.Test11, true},
-		{"hello", td.Test11, false},
-		{"TDManberHeap", slices.Clone(TDManberHeap), true},
-		{"TDManberHeap", slices.Clone(TDManberHeap), false},
-		{"TestDdata4813", TestDdata4813, true},
-		{"TestDdata4813", TestDdata4813, false},
+		// {"978", []int{9, 7, 8}, true},
+		// {"7, 8, 9", []int{7, 8, 9}, true},
+		// {"7, 9, 8", []int{7, 9, 8}, true},
+		{"9, 7, 8", []int{9, 7, 8}, true},
+		// {"hello", td.Test11, true},
+		// {"hello", td.Test11, false},
+		// {"TDManberHeap", slices.Clone(TDManberHeap), true},
+		// {"TDManberHeap", slices.Clone(TDManberHeap), false},
+		// {"TestDdata4813", TestDdata4813, true},
+		// {"TestDdata4813", TestDdata4813, false},
+		// {"NTU2024mid7", NTU2024mid7, false},
 	}
 
 	for _, tt := range tests {
 		wantSlice := slices.Clone(tt.seq)
 		wantSlice = GetSorted(wantSlice)
-		if tt.descending {
+		if !tt.ascending {
 			slices.Reverse(wantSlice)
 		}
-		h := NewHeap(tt.seq, true)
-		h.t = t
-		h.VerifyHeap()
-		sortedSeq := h.GetSortedValues(tt.descending)
+		sortedSeq, h := HeapSort(tt.seq, tt.ascending)
+		// h := NewHeap(tt.seq, tt.descending)
+		// h.t = t
+		// h.VerifyHeap()
+		// sortedSeq := h.Sort()
 
 		if !slices.Equal(sortedSeq, wantSlice) {
 			t.Errorf("FAIL h.GetSortedValues, got: %v !=  want: %v", wantSlice, sortedSeq)

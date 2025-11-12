@@ -1,0 +1,48 @@
+Algorithm Knapsack (S, K); 
+begin 
+    n := len(S)
+    P[0, 0].exist := true
+    for k := 1 to K do 
+        P[0, k].exist := false
+        for i := 1 to n do 
+            for k := 0 to K do 
+                P[i, k].exist := false
+                if P[i - 1, k].exist then 
+                    P[i, k].exist := true
+                    P[i, k].belong := false 
+                else if k - S[i] >= 0 then 
+                    if P[i - 1, k - S[i]].exist then 
+                        P[i, k].exist := true 
+                        P[i, k].belong := true 
+end 
+
+Algorithm Knapsack (S, V, K):
+n := len(S)
+P[0, 0].exist := true
+P[0, 0].value := 0
+for k := 1 to K do 
+    P[0, k].exist := false
+    for i := 1 to n do 
+        for k := 0 to K do 
+            P[i, k].exist := false
+            P[i, k].value := 0
+            if P[i - 1, k].exist then 
+                P[i, k].exist := true
+                P[i, k].belong := false
+                P[i, k].value := P[i - 1, k].value
+                // We still want to check if
+                // last (i-1) row has a value at k - S[i]
+                // that is less than it + current value.
+                // If yes then we use that value for P[i, k]
+                // AND change the belong flag to true
+            end if 
+            
+            W_SUB_EL := k - S[i] // current weight minus current element weight
+            if W_SUB_EL >= 0 then 
+                if P[i - 1, W_SUB_EL].exist then 
+                    candidateValue := P[i - 1, W_SUB_EL].value + V[i]
+                    if candidateValue > P[i,k].value then
+                        P[i, k].belong := true 
+                        P[i, k].value := candidateValue
+
+From the nested loop we see that the time complexity if O(nK) which is pseudopolynomial because K is the numeric value of one of the inputs.

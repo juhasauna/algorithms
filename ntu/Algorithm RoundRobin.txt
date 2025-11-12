@@ -1,0 +1,20 @@
+Algorithm RoundRobin(players, startRound):
+    n := length(players)
+    if not IsPowerOfTwo(n): exit(player count should be a power of two)
+    if n = 2: exit("round " + startRound + ": " + players[1] + " vs " + players[2])
+
+    mid := n / 2
+	left := players[:mid]
+	right := players[mid:]
+
+	RoundRobin(left, startRound)
+	RoundRobin(right, startRound)
+
+	for i := range mid:
+		for r := range mid:
+			round := startRound + r + mid - 2
+			p1 := left[(i+r)%mid]
+			p2 := right[i]
+			print("round " + round + ": " + p1 + " vs " + p2)
+
+    

@@ -1,0 +1,20 @@
+Algorithm Non-recursive_towers_of_hanoi(n):
+    type hanoi struct {
+        n integer
+        peg1 string
+        peg2 string
+        peg3 string
+    }
+    // Use a stack to pop and push elements off and on the top.
+    stack := []hanoi
+    stack.push(n, "A", "B", "C")
+    
+    while len(stack) > 0:
+        pop := stack.pop()
+        if pop.n > 1:
+            stack.push(pop.n-1, pop.peg3, pop.peg2, pop.peg1)
+            stack.push(1, pop.peg1, pop.peg2, pop.peg3)
+            stack.push(pop.n-1, pop.peg1, pop.peg3, pop.peg2)
+        else:
+            print("moving a disk from ", pop.peg1, " to ", pop.peg2)
+        

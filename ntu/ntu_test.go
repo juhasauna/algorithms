@@ -30,9 +30,9 @@ func Test_ntu(t *testing.T) {
 		// {"celebrityBruteForce", celebrityBruteForceTest},
 		// {"maximumConsequtiveSubsequence", maximumConsequtiveSubsequenceTest},
 		// {"UnionFind", UnionFindTest},
-		// {"FindFibonacciWordSequence", FindFibonacciWordSequenceTest},
 		// {"longestIncreasingSubsequence", longestIncreasingSubsequenceTest},
-		{"binaryToGray", binaryToGrayTest},
+		// {"binaryToGray", binaryToGrayTest},
+		{"herdingCats", herdingCatsTest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -41,6 +41,31 @@ func Test_ntu(t *testing.T) {
 	}
 }
 
+func herdingCatsTest(t *testing.T) {
+	tests := []struct {
+		fileName string
+		want     []bool
+	}{
+		// {"cats01.txt", []bool{true, false}},
+		// {"cats02.txt", []bool{false}},
+		// {"cats03.txt", []bool{false, true}},
+		// {"cats04_no.txt", []bool{false}},
+		// {"cats04_no_simple.txt", []bool{false}},
+		// {"cats_ICPCNews.txt", []bool{false}},
+		{"cats_more_tests.txt", []bool{false, false, true, false, false, false, true, true, true, false, false}},
+		// {"cats05_complex.txt", []bool{true}},
+		// {"cats200.txt", []bool{true, true}},
+	}
+	for _, tt := range tests {
+		got := herdSetsOfCats(tt.fileName)
+		if reflect.DeepEqual(got, tt.want) {
+			t.Logf("\nSUCCESS")
+		} else {
+			t.Errorf("\nFAIL: got: %v, want: %v", got, tt.want)
+		}
+	}
+
+}
 func binaryToGrayTest(t *testing.T) {
 	tests := []struct {
 		bin  string
@@ -87,22 +112,6 @@ func longestIncreasingSubsequenceTest(t *testing.T) {
 		} else {
 			fmt.Printf("SUCCESS %d: got: %d\n", i, got)
 		}
-	}
-}
-
-func FindFibonacciWordSequenceTest(t *testing.T) {
-	tests := []struct {
-		name       string
-		bitPattern string
-		length     int
-	}{
-		// {"", "1", 123},
-		{"", "1101", 5},
-	}
-	x := NTU{}
-	for _, tt := range tests {
-		got := x.FindFibonacciWordSequence(tt.bitPattern, tt.length)
-		t.Log(got)
 	}
 }
 
@@ -182,10 +191,7 @@ func celebrityBruteForceTest(t *testing.T) {
 		x := NTU{verbose: false}
 		m := x.newAdjMatrix(tt.s)
 		got := x.celebrityBruteForce(m)
-		t.Logf("BF iters: %d", x.iters)
-		x.iters = 0
 		gotCeleb := x.celebrityFromPseudo(m)
-		t.Logf("Pseudo iters: %d", x.iters)
 		if gotCeleb != tt.celebrity {
 			t.Errorf("i: %d FAIL got: %v, want: %d", i, gotCeleb, tt.celebrity)
 		} else {
@@ -292,14 +298,20 @@ func towersOfHanoiTest(t *testing.T) {
 		target    int
 		auxiliary int
 	}{
-		{3, 1, 2, 3},
+		// {3, 1, 2, 3},
 		// {8, 1, 2,3},
+		{1, 10, 11, 12},
+		{2, 10, 11, 12},
+		{3, 10, 11, 12},
+		{4, 10, 11, 12},
+		{5, 10, 11, 12},
 	}
 
 	for _, tt := range tests {
 		x := NTU{verbose: true}
 		// x.towersOfHanoiFromPseudo(tt.n, tt.source, tt.target, tt.auxiliary)
-		x.hw24_04_05_fromPseudo(tt.n, tt.source, tt.target, tt.auxiliary)
+		// x.hw24_04_05_fromPseudo(tt.n, tt.source, tt.target, tt.auxiliary)
+		x.nonRecursiveHanoiJuha(tt.n)
 		t.Logf("towers of hanoi moves for n=%d: %d", tt.n, x.iters)
 	}
 }
@@ -535,44 +547,142 @@ func (x NTU) checkKnapsackResult(t *testing.T, m map[int]map[int]ksP, K int) boo
 
 	return solutionExists
 }
+func (x NTU) checkKnapsackUnboundedResult(t *testing.T, m map[int]map[int]ksPU, K int) bool {
+	solutionExists := false
+	for _, v := range m {
+		if !v[0].exist {
+			t.Error("knapsack empty set should exists for all rows")
+			return false
+		}
+		if v[0].belong > 0 {
+			t.Error("knapsack empty set should not have any belongs")
+			return false
+		}
+		if v[K].exist {
+			solutionExists = true
+		}
+		for weight, w := range v {
+			if weight != ut.Sum(w.set) {
+				t.Errorf("The elements (%v) do not sum up to the weight (%d)", w.set, weight)
+				return false
+			}
+		}
+
+	}
+	for _, v := range m {
+		delete(v, 0) // Delete empty sets because they are uninteresting.
+		for k, w := range v {
+			if k == w.set[0] {
+				delete(v, k) // Delete sets with single element because they are uninteresting.
+			}
+			if w.belong == 0 {
+				delete(v, k)
+			}
+		}
+	}
+
+	return solutionExists
+}
 
 func knapsackExactTest(t *testing.T) {
+	type solutionExists struct {
+		one_zero  bool
+		unbounded bool
+	}
 	tests := []struct {
 		name           string
 		S              []int
+		values         []int
 		K              int
-		solutionExists bool
+		solutionExists solutionExists
 	}{
-		// {"True or false?", []int{}, 0, false},
-		{"1", []int{2}, 2, true},
-		{"1", []int{2}, 1, false},
-		{"1", []int{2}, 0, true},
-		// {"1", []int{2}, 2, true},
-		// {"1", []int{1, 2}, 3, true},
-		// {"1", []int{1, 2, 3}, 5, true},
-		// {"1", []int{1, 2, 3}, 6, true},
-		// {"Manber exp. (p.127)", []int{2, 3, 5, 6}, 16, true},
-		// {"1", []int{2, 4, 6}, 7, false},
-		// {"2", []int{1, 1, 2}, 2, true},
-		// {"3", []int{2, 4}, 3, false},
-		// {"", []int{4, 8, 12, 7}, 13, false},
+		// {"0", []int{}, nil, 0, solutionExists{false, false}},
+		// {"2a", []int{2}, nil, 2, solutionExists{true, true}},
+		// {"1", []int{2}, nil, 1, solutionExists{false, false}},
+		// {"0", []int{2}, nil, 0, solutionExists{true, true}},
+		// {"2b", []int{1}, nil, 2, solutionExists{false, true}},
+		// {"6a", []int{2, 3}, nil, 6, solutionExists{false, true}},
+		// {"6b", []int{3, 2}, nil, 6, solutionExists{false, true}},
+		// {"1", []int{1, 2, 3}, nil, 6, solutionExists{true, true}},
+		// {"1", []int{2, 1, 3}, nil, 6, solutionExists{true, true}},
+		// {"1", []int{3, 2, 1}, nil, 6, solutionExists{true, true}},
+		// {"1", []int{2, 3, 1}, nil, 6, solutionExists{true, true}},
+		// {"1", []int{1, 2, 3}, nil, 5, solutionExists{true, true}},
+		// {"1", []int{3, 1}, nil, 7, solutionExists{false, true}},
+		// {"1", []int{1, 3}, nil, 7, solutionExists{false, true}},
+		// {"1", []int{1, 2}, nil, 3, solutionExists{true, true}},
+		{"Manber exp. (p.127)", []int{2, 3, 5, 6}, nil, 16, solutionExists{true, true}}, // Requires ut.CopyAndAppendSlice to work.
+		// {"Manber exp. (p.127)", []int{2, 3, 5, 6}, nil, 11, solutionExists{true, true}}, // Requires ut.CopyAndAppendSlice to work.
+		// {"Manber exp. (p.127)", []int{2, 3, 5, 6}, nil, 10, solutionExists{true, true}}, // Requires ut.CopyAndAppendSlice to work.
+		// {"unbounded", []int{2, 3, 5, 6}, nil, 15, solutionExists{false, true}},
+		// {"1", []int{2, 4, 6}, nil, 7, solutionExists{false, false}},
+		// {"2", []int{1, 1, 2}, nil, 2, solutionExists{true, true}},
+		// {"3", []int{2, 4}, nil, 3, solutionExists{false, false}},
+		// {"", []int{4, 8, 12, 7}, nil, 13, solutionExists{false, false}},
+		// {"valued", []int{2, 3, 5, 6}, []int{2, 3, 5, 6}, 16, solutionExists{true, false}},
+		// {"valued", []int{2, 3, 5, 6}, []int{123, 3, 5, 6}, 14, solutionExists{false, false}},
+		// {"valued", []int{2, 3, 5, 6}, []int{10, 10, 10, 1}, 10, solutionExists{true, false}},
+		// {"valued", []int{2, 3, 5, 6}, []int{10, 10, 10, 1}, 11, solutionExists{false, false}},
+		// {"ByteQuest valued", []int{3, 2, 4, 5, 1}, []int{50, 40, 70, 80, 10}, 7, solutionExists{true, false}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			x := NTU{verbose: false}
-			got := x.knapsackExact(tt.S, tt.K)
-			solutionExists := x.checkKnapsackResult(t, got, tt.K)
-			if solutionExists != tt.solutionExists {
-				t.Errorf("solutionExists: %t, want: %t", solutionExists, tt.solutionExists)
-			}
-			t.Log("\ti / v / weight & set")
-			for i, v := range got {
-				trimMap := []string{}
-				for j, w := range v {
-					trimMap = append(trimMap, fmt.Sprintf("%d,%v", j, w.set))
+			if tt.values == nil {
+				// got := x.knapsackExact01(tt.S, tt.K)
+				got := x.knapsackExact01Manber5_8(tt.S, tt.K)
+				t.Logf("gotExact %v\n", got)
+				return
+				gotRecover := x.knapsackRecover(tt.S, tt.K, got)
+				t.Logf("gotRecover %v", gotRecover)
+				return
+				solutionExists := x.checkKnapsackResult(t, got, tt.K)
+				if solutionExists != tt.solutionExists.one_zero {
+					t.Errorf("solutionExists: %t, want: %t", solutionExists, tt.solutionExists.one_zero)
+					t.Log("\ti / v / weight,value,set")
+					for i, v := range got {
+						trimMap := []string{}
+						for j, w := range v {
+							trimMap = append(trimMap, fmt.Sprintf("%d,%v", j, w.set))
+						}
+						t.Logf("\t%d / %d /\t%s", i, tt.S[i], strings.Join(trimMap, "   "))
+					}
 				}
-				t.Logf("\t%d / %d /\t%s", i, tt.S[i], strings.Join(trimMap, "   "))
+
+				gotUnbounded := x.knapsackExactUnlimited(tt.S, tt.K)
+				solutionExistsUnbounded := x.checkKnapsackUnboundedResult(t, gotUnbounded, tt.K)
+				if solutionExistsUnbounded != tt.solutionExists.unbounded {
+					t.Errorf("unbounded solutionExists: %t, want: %t", solutionExistsUnbounded, tt.solutionExists.unbounded)
+					t.Log("\ti / v / weight,value,set")
+					for i, v := range gotUnbounded {
+						trimMap := []string{}
+						for j, w := range v {
+							trimMap = append(trimMap, fmt.Sprintf("%d,%v", j, w.set))
+						}
+						t.Logf("\t%d / %d /\t%s", i, tt.S[i], strings.Join(trimMap, "   "))
+					}
+				}
+
+			} else {
+				got := x.knapsackExactValued(tt.S, tt.values, tt.K)
+				solutionExists := false
+				maxValue := 0
+
+				for i, v := range got {
+					trimMap := []string{}
+					for j, w := range v {
+						if maxValue < w.value {
+							maxValue = w.value
+							solutionExists = tt.K == ut.Sum(w.set)
+						}
+						trimMap = append(trimMap, fmt.Sprintf("%d,%d,%v", j, w.value, w.set))
+					}
+					t.Logf("\n%d / %d /\t%s", i, tt.S[i], strings.Join(trimMap, "   "))
+				}
+				if solutionExists != tt.solutionExists.one_zero {
+					t.Errorf("got/want: %t/%t", solutionExists, tt.solutionExists)
+				}
 			}
 		})
 	}

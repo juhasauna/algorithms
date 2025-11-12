@@ -31,25 +31,25 @@ func (x *CH6) recursiveRoundRobin(players []int, startRound int) {
 	n := len(players)
 	if n == 2 {
 		// Base case: one match
-		fmt.Printf("round: %d\t%d vs %d\n", startRound, players[0], players[1])
+		fmt.Printf("round %d:\t%d vs %d\n", startRound, players[0], players[1])
 		return
 	}
 
-	half := n / 2
-	left := players[:half]
-	right := players[half:]
+	mid := n / 2
+	left := players[:mid]
+	right := players[mid:]
 
 	// Recursive calls for intra-group matches
 	x.recursiveRoundRobin(left, startRound)
 	x.recursiveRoundRobin(right, startRound)
 
 	// Cross matches between left and right halves
-	for i := range half {
-		for r := range half {
-			round := startRound + r + half
-			p1 := left[(i+r)%half]
+	for i := range mid {
+		for r := range mid {
+			round := startRound + r + mid - 1
+			p1 := left[(i+r)%mid]
 			p2 := right[i]
-			fmt.Printf("round: %d\t%d vs %d\n", round, p1, p2)
+			fmt.Printf("round %d:\t%d vs %d\n", round, p1, p2)
 		}
 	}
 }
@@ -371,123 +371,6 @@ func (x *CH6) minimumEditDistance(text1, text2 string) [][]int {
 	return costMatrix
 }
 
-func (x CH6) stringMatchKMP(from, search string) int {
-	fmt.Printf("stringMatchKMP: from/search %s/%s", from, search)
-	if len(from) < len(search) {
-		return -1
-	}
-	if len(from) == len(search) {
-		if from == search {
-			return 0
-		}
-		return -1
-	}
-	if search == "" {
-		return 0
-	}
-	if len(search) == 1 {
-		if string([]rune(from)[0]) == search {
-			return 0
-		}
-	}
-	// The book uses 1 based index which makes this much harder than it needs to be.
-	next := x.computeKMPNext(search, false)
-	lenFrom, lenSearch := len(from), len(search)
-	result := -1
-	i, j := 0, 1
-	for result <= 0 && i < lenFrom {
-		fmt.Println("stringMatchKMP", search, j, from, i)
-		if search[j] == from[i] {
-			j++
-			i++
-		} else {
-			j = next[j-1] + 1
-			if j == 0 {
-				j = 1
-				i++
-			}
-		}
-		if j == lenSearch {
-			result = i - (lenSearch - 1)
-		}
-	}
-	return result
-}
-
-func (x CH6) computeKMPNext(text string, optimize bool) []int {
-	length := len(text)
-	fmt.Println("len: ", length, "text: ", text)
-	next := []int{-1, 0}
-	for i := 2; i < length; i++ {
-		j := next[i-1] + 1
-		fmt.Println(i, j, next, string(text[i-1]), string(text[j]))
-		for text[i-1] != text[j-1] {
-			fmt.Printf("j=%d\ttext[i]=%c text[j]=%c\n", j, text[i-1], text[j])
-			j = next[j-1] + 1
-			if j == 0 {
-				break
-			}
-		}
-		next = append(next, j)
-	}
-	if optimize {
-		x.optimizeKMPNextResult(text, next)
-	}
-	return next
-}
-
-// See HW 2024/6 Ex.5 alg2024hw6_s.pdf
-func (x CH6) optimizeKMPNextResult(text string, next []int) {
-	for i := 2; i < len(text); i++ {
-		j := next[i] + 1
-		if text[i] == text[j-1] {
-			next[i] = next[j-1]
-			if j == 0 {
-				break
-			}
-		}
-	}
-}
-
-func (x CH6) computeKMPNextGemini(pattern string) []int {
-	length := len(pattern)
-	if length == 0 {
-		return []int{}
-	}
-
-	// lps is the array that will hold the Longest Proper Prefix suffix values for the pattern.
-	lps := make([]int, length)
-	lps[0] = 0 // lps[0] is always 0.
-
-	// 'currentLPSLength' keeps track of the length of the previous longest prefix suffix.
-	currentLPSLength := 0
-
-	// The loop calculates lps[i] for i from 1 to length-1.
-	i := 1
-	for i < length {
-		// Case 1: The characters match.
-		// We found a longer prefix that is also a suffix.
-		if pattern[i] == pattern[currentLPSLength] {
-			currentLPSLength++
-			lps[i] = currentLPSLength
-			i++
-		} else { // Case 2: The characters do not match.
-			if currentLPSLength != 0 {
-				// This is the key step of the KMP algorithm. We do not restart from scratch.
-				// We fall back to the LPS value of the previous state, effectively trying a shorter prefix.
-				// We do NOT increment 'i' here, as we need to re-evaluate pattern[i] against the new, shorter prefix.
-				currentLPSLength = lps[currentLPSLength-1]
-			} else {
-				// If currentLPSLength is 0, it means we couldn't find a shorter prefix to match.
-				// We set lps[i] to 0 and move to the next character in the pattern.
-				lps[i] = 0
-				i++
-			}
-		}
-	}
-	return lps
-}
-
 // FindMinAndMax() find min and max in [1.5*n-2]-comparisons. Using a the naive approach takes 2*n-3 comparisons.
 func (x *CH6) FindMinAndMax(seq []int) (int, int) {
 	n := len(seq)
@@ -504,14 +387,9 @@ func (x *CH6) FindMinAndMax(seq []int) (int, int) {
 	} else {
 		max, min = seq[1], seq[0]
 	}
-	if n == 2 {
-		return max, min
-	}
 	for i := 2; i < n-1; i += 2 {
 		a_, b_ := seq[i], seq[i+1]
-		x.iters++
-		x.iters++
-		x.iters++
+		x.IncrementCounter(3)
 		if b_ > a_ {
 			max = ut.Max(b_, max)
 			min = ut.Min(a_, min)
@@ -521,7 +399,7 @@ func (x *CH6) FindMinAndMax(seq []int) (int, int) {
 		}
 	}
 	if n%2 != 0 {
-		min, max = ut.NewMinAndMax(min, max, seq[n-1])
+		min, max = ut.UpdateMinAndMax(min, max, seq[n-1])
 	}
 	return min, max
 }
@@ -580,8 +458,41 @@ func (x CH6) Partition(seq []int, left, right int) int {
 	seq[left], seq[mid] = seq[mid], seq[left]
 	return mid
 }
+func (x *CH6) PartitionFromPseudo(seq []int, left, right int) int {
+	pivot := seq[left]
+	l, r := left+1, right
+	for l <= r {
+		for {
+			fmt.Println(seq[l], "<=", pivot)
+			x.iters++
+			if !(l <= right && seq[l] <= pivot) {
+				break
+			}
+			l++
+		}
+		for {
+			fmt.Println(seq[r], ">", pivot)
+			x.iters++
+			if !(r >= left && seq[r] > pivot) {
+				break
+			}
+			r--
+		}
+		if l < r {
+			fmt.Println("SWP", seq[l], seq[r])
+			seq[l], seq[r] = seq[r], seq[l]
+			l++
+			r--
+		}
+	}
+	fmt.Println(seq)
+	mid := r
+	seq[left], seq[mid] = seq[mid], seq[left]
+	fmt.Println(seq)
+	return mid
+}
 
-// Implementation of pseudocode: file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/slides/ch6_notes_a.pdf
+// Implementation of pseudocode: file:///C:/Users/juhas/OneDrive/courses/NTU_algorithms/lecture_notes/ch6_notes_a.pdf
 func (x *CH6) mergeSortPseudo(seq []int, n int) []int {
 	var m_sort func(int, int)
 	m_sort = func(left, right int) {
@@ -700,9 +611,9 @@ func (x *CH6) straightRadixSort(seq []int) []int {
 		return int(math.Floor(math.Log10(float64(maxVal))) + 1)
 	}()
 	place := 1
-	for i := 0; i < digits; i++ {
+	for range digits {
 		queues := make([][]int, 10)
-		for j := 0; j < 10; j++ {
+		for j := range 10 {
 			queues[j] = []int{}
 		}
 		for _, v := range seq {
@@ -710,7 +621,7 @@ func (x *CH6) straightRadixSort(seq []int) []int {
 			queues[d] = append(queues[d], v)
 		}
 		seq = []int{}
-		for j := 0; j < 10; j++ {
+		for j := range 10 {
 			seq = append(seq, queues[j]...)
 		}
 		place *= 10
@@ -861,15 +772,15 @@ func (x *CH6) quickSort(seq []int) []int {
 				r--
 			}
 			if l < r {
-				seq[l], seq[r] = seq[r], seq[l]
+				ut.SliceSwap(seq, l, r)
 			}
 		}
 		mid := r
-		seq[left], seq[mid] = seq[mid], seq[left]
+		ut.SliceSwap(seq, left, mid)
 		return mid
 	}
-	var sortition func(left, right int, msg string)
-	sortition = func(left, right int, msg string) {
+	var recurse func(left, right int, msg string)
+	recurse = func(left, right int, msg string) {
 		x.iters++
 		if x.iters > 100 {
 			x.t.Fatalf("too many iters")
@@ -878,11 +789,11 @@ func (x *CH6) quickSort(seq []int) []int {
 			mid := 0
 			mid = partition(left, right)
 			x.t.Logf("%d, %d, %d, %v, msg: %s\n", left, mid, right, seq, msg)
-			sortition(left, mid-1, "left")
-			sortition(mid+1, right, "right")
+			recurse(left, mid-1, "left")
+			recurse(mid+1, right, "right")
 		}
 	}
-	sortition(0, len(seq)-1, "begin")
+	recurse(0, len(seq)-1, "begin")
 	return seq
 }
 
@@ -890,6 +801,12 @@ type CH6 struct {
 	verbose bool
 	iters   int64
 	t       *testing.T
+}
+
+func (x *CH6) IncrementCounter(i int) {
+	for range i {
+		x.iters++
+	}
 }
 
 func (x CH6) Logf(format string, a ...any) {

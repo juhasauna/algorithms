@@ -14,7 +14,7 @@ func Test_ch6(t *testing.T) {
 		f    func(*testing.T)
 	}{
 		// {"cyclicBinarySearch", cyclicBinarySearchTest},
-		// {"quickSort", quickSortTest},
+		{"quickSort", quickSortTest},
 		// {"specialBinarySearch", specialBinarySearchTest},
 		// {"stutteringSubsequence", stutteringSubsequenceTest},
 		// {"interpolationSearch", interpolationSearchTest},
@@ -22,8 +22,6 @@ func Test_ch6(t *testing.T) {
 		// {"mergeSort", mergeSortTest},
 		// {"FindMinAndMax", FindMinAndMaxTest},
 		// {"KthSmallestElement", KthSmallestElementTest},
-		{"computeNext", computeNextTest},
-		// {"stringMatch", stringMatchKMPTest},
 		// {"minimumEditDistance", minimumEditDistanceTest},
 		// {"HW6_24_03", HW6_24_03_Test},
 		// {"RoundRobinSchedule", RoundRobinScheduleTest},
@@ -50,9 +48,9 @@ func RoundRobinScheduleTest(t *testing.T) {
 		// x.RoundRobinScheduleGrok(tt.left, tt.right, tt.playerCount)
 		// got := x.schedule([]int{1, 2, 3, 4})
 		// got := x.scheduleCGPT([]int{1, 2, 3, 4, 5, 6, 7, 8})
-		x.scheduleRoundRobin(8)
+		x.scheduleRoundRobin(tt.playerCount)
 		// x.RoundRobinScheduleGeminiJuha(tt.playerCount)
-		t.Log(tt.left)
+		// t.Log(tt.left)
 		// got := x.RoundRobinCGPT([]int{1, 2, 3, 4})
 		// t.Logf("%v", got)
 	}
@@ -130,58 +128,6 @@ func minimumEditDistanceTest(t *testing.T) {
 	}
 }
 
-func stringMatchKMPTest(t *testing.T) {
-	tests := []struct {
-		name   string
-		from   string
-		search string
-		want   int
-	}{
-		{"Manber exp.", "xyxxyxyxyyxyxyxyyxyxyxx", "xyxyyxyxyxx", 13},
-		{"ByteQuest VOD exp.", "BABABABABCABABCABAB", "ABABCABAB", 6},
-		{"simple match", "AB", "A", 0},
-		{"no match", "AAABBB", "AABA", -1},
-		{"no match2", "AABA", "AAABBB", -1},
-		{"simple match", "A", "A", 0},
-		// {"simple match", "A", "AA", 1},
-	}
-	for _, tt := range tests {
-		x := CH6{}
-		got := x.stringMatchKMP(tt.from, tt.search)
-		if got != tt.want {
-			t.Errorf("FAIL (%s) got: %d, want: %d", tt.name, got, tt.want)
-		} else {
-			t.Logf("SUCCESS got: %v", got)
-		}
-
-	}
-}
-func computeNextTest(t *testing.T) {
-	tests := []struct {
-		name     string
-		text     string
-		optimize bool
-		want     []int
-	}{
-		// {"", "xyxyy", false, []int{-1, 0, 0, 1, 2}},
-		// {"", "xyxyyx", false, []int{-1, 0, 0, 1, 2, 0}},
-		// {"", "xyxyyxyxyxx", false, []int{-1, 0, 0, 1, 2, 0, 1, 2, 3, 4, 3}},
-		// {"", "ABABCABAB", false, []int{-1, 0, 0, 1, 2, 0, 1, 2, 3}},
-		// {"24/hw6/5", "abaababaa", false, []int{-1, 0, 0, 1, 1, 2, 3, 2, 3}},
-		{"24/hw6/5 optimized", "abaababaa", true, []int{-1, 0, -1, 1, 0, -1, 3, -1, 1}},
-	}
-	for _, tt := range tests {
-		x := CH6{}
-		got := x.computeKMPNext(tt.text, tt.optimize)
-		if !slices.Equal(got, tt.want) {
-			t.Errorf("FAIL got: %v, want: %v", got, tt.want)
-		} else {
-			t.Logf("SUCCESS got: %v, want: %v", got, tt.want)
-		}
-
-	}
-}
-
 func KthSmallestElementTest(t *testing.T) {
 	tests := []struct {
 		seq  []int
@@ -232,10 +178,11 @@ func FindMinAndMaxTest(t *testing.T) {
 		min int
 		max int
 	}{
-		// {[]int{1, 2, 3}, 1, 3},
-		// {[]int{4, 2, 3, 1}, 1, 4},
-		// {[]int{4, 2, 5, 3, 1}, 1, 5},
-		// {[]int{1, 2, 3, 5, 6, 7, 8, 9}, 1, 9},
+		{[]int{1, 2}, 1, 2},
+		{[]int{1, 2, 3}, 1, 3},
+		{[]int{4, 2, 3, 1}, 1, 4},
+		{[]int{4, 2, 5, 3, 1}, 1, 5},
+		{[]int{1, 2, 3, 5, 6, 7, 8, 9}, 1, 9},
 		{ut.TestDdata4813, 20, 99986},
 	}
 	for _, tt := range tests {
@@ -371,18 +318,24 @@ func quickSortTest(t *testing.T) {
 	tests := []struct {
 		seq []int
 	}{
-		// {[]int{1, 2, 3}},
-		// {[]int{2, 3, 1}},
 		// {[]int{3, 1, 2}},
+		// {[]int{2, 3, 1}},
+		// {[]int{1, 2, 3}},
+
 		// {[]int{5, 6, 7, 8, 1, 2, 3, 4}},
-		// {[]int{2, 3, 4, 5, 6, 7, 8, 1}},
 		{[]int{3, 2, 8, 5, 1, 4, 7, 6}},
+		// {[]int{2, 3, 4, 5, 6, 7, 8, 1}},
+		// {[]int{5, 10, 6, 11, 7, 14, 8, 1, 15, 2, 12, 3, 13, 4}},
 	}
 	for i, tt := range tests {
 		want := make([]int, len(tt.seq))
 		copy(want, tt.seq)
 		slices.Sort(want)
 		x := CH6{t: t}
+		x.PartitionFromPseudo(tt.seq, 0, len(tt.seq)-1)
+		fmt.Println(x.iters, len(tt.seq))
+		x.iters = 0
+		return
 		got := x.quickSort(tt.seq)
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("FAIL got: %d, want: %d", got, want)

@@ -1,0 +1,21 @@
+Algorithm TwoPartition(X):
+	Sum := sum(X)
+	If IsOdd(Sum) then
+		Print("Odd sum cannot be partitioned")
+		Return
+	End if
+	Target := sum/2
+	N := Length(X)
+	P := knapsack10(X, Target)
+	If not P[N,Target].exists then
+		Print("No suitable partition exists")
+		Return
+	End if
+	
+	Part1 := []
+	Part2 := []
+	
+	For N >=0 do
+		If P[N, Target].belong then
+            Part1=append(Part1, )
+    End for

@@ -1,0 +1,23 @@
+FindLongestPath(G(V, E)):
+	init length to zero and parent to nil for all nodes
+
+	for v in TopologicalSort(G):
+		for edges (v, w) in E:
+			if w.length < v.length+1 then
+				w.length += v.length+1
+				w.parent = v
+
+	maxLength := 0
+	endNode := nil
+	for v in V:
+		if v.length > maxLength then
+			maxLength = v.length
+			endNode = v
+
+	longestPath.push(endNode)
+	parent = endNode.parent
+	while parent not nil:
+		longestPath.push(parent)
+		parent = parent.parent
+	
+	return longestPath

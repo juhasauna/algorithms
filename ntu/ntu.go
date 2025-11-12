@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"slices"
-	"strconv"
 	"testing"
 )
 
@@ -136,7 +135,7 @@ func (x *NTU) partitionToEqualSums(arr []int) *TwoPartition {
 }
 
 // non-recursive Towers of Hanoi
-func (x NTU) hw24_04_05_fromPseudo(n, source, target, auxiliary int) {
+func (x NTU) hw24_04_05_fromPseudo(n, source, destination, auxiliary int) {
 	x.iters++
 	type hanoi struct {
 		n int
@@ -145,7 +144,7 @@ func (x NTU) hw24_04_05_fromPseudo(n, source, target, auxiliary int) {
 		a int
 	}
 	// Stack: pop and push elements off and on the top.
-	stack := []hanoi{{n, source, target, auxiliary}}
+	stack := []hanoi{{n, source, destination, auxiliary}}
 	for len(stack) != 0 {
 		p := stack[0]
 		stack = stack[1:]
@@ -155,6 +154,28 @@ func (x NTU) hw24_04_05_fromPseudo(n, source, target, auxiliary int) {
 			stack = append([]hanoi{{p.n - 1, p.a, p.t, p.s}}, stack...)
 			stack = append([]hanoi{{1, p.s, p.t, p.a}}, stack...)
 			stack = append([]hanoi{{p.n - 1, p.s, p.a, p.t}}, stack...)
+		}
+	}
+}
+func (x NTU) nonRecursiveHanoiJuha(n int) {
+	type hanoi struct {
+		n    int
+		peg1 string
+		peg2 string
+		peg3 string
+	}
+	// Stack: pop and push elements off and on the top.
+	stack := []hanoi{{n: n, peg1: "A", peg2: "B", peg3: "C"}}
+	for len(stack) != 0 {
+		x.iters++
+		pop := stack[0]
+		stack = stack[1:]
+		if pop.n == 1 {
+			x.log("%s -> %s\n", pop.peg1, pop.peg2)
+		} else {
+			stack = append([]hanoi{{pop.n - 1, pop.peg3, pop.peg2, pop.peg1}}, stack...)
+			stack = append([]hanoi{{1, pop.peg1, pop.peg2, pop.peg3}}, stack...)
+			stack = append([]hanoi{{pop.n - 1, pop.peg1, pop.peg3, pop.peg2}}, stack...)
 		}
 	}
 }
@@ -204,7 +225,7 @@ func (x *NTU) subsetSumBlackBox(arr []int, target int) bool {
 	verbose := x.verbose
 	x.verbose = false
 	defer func(v bool) { x.verbose = v }(verbose)
-	p := x.knapsackExact(arr, target)
+	p := x.knapsackExact01(arr, target)
 	for _, v := range p {
 		if v[target].exist {
 			return true
@@ -250,6 +271,12 @@ func (x NTU) log(format string, a ...interface{}) {
 type ksP struct {
 	exist  bool
 	belong bool
+	value  int // Only relevant for teh 'valued' version.
+	set    []int
+}
+type ksPU struct { // KnapScakPUnlimited. AKA UnboundedKnapsack.
+	exist  bool
+	belong int // Records how many times the same item is included in the knapsack.
 	set    []int
 }
 
@@ -264,47 +291,155 @@ func (x NTU) myKnapsack(S []int, K int) bool {
 	return false
 }
 
-// This is the best knapsack version. Adapted from Manber.
-func (x NTU) knapsackExact(S []int, targetWeight int) map[int]map[int]ksP {
-
-	p := make(map[int]map[int]ksP) // First key the row index. Second column is the weight (ranges from 0 to K).
+// This is the best knapsack version. Adapted from Manber. 0/1 Means that we either take the item once or we dont.
+func (x *NTU) knapsackExact01(S []int, targetWeight int) map[int]map[int]ksP {
+	p := make(map[int]map[int]ksP) // First key the row index. Second key is the weight (column) (ranges from 0 to K).
 	if len(S) == 0 {
 		return p
-		// if targetWeight == 0 {
-		// 	p[0] = make(map[int]ksP)
-		// 	p[0][0] = ksP{true, false, []int{}}
-		// }
 	}
 	for i := range S {
 		p[i] = make(map[int]ksP)
-		p[i][0] = ksP{true, false, []int{}} // weight 0 => solution is the empty set.
+		p[i][0] = ksP{true, false, 0, []int{}} // weight 0 => solution is the empty set.
 	}
-
-	p[0][S[0]] = ksP{true, true, []int{S[0]}} // This is needed for a correct results e.g. {1,2,3}, k = 6.
+	// fmt.Printf("%+v\n", p)
+	p[0][S[0]] = ksP{true, true, 0, []int{S[0]}} // This is needed for a correct result e.g. {1,2,3}, k = 6.
 	for i := 1; i < len(S); i++ {
+		itemWeight := S[i]
 		for k := 0; k <= targetWeight; k++ {
-			itemWeight := S[i]
 			weightMinusItem := k - itemWeight
 			if p[i-1][k].exist {
 				x.log("if: i: %d, k: %d, itemWeight: %d\n", i, k, itemWeight)
-				p[i][k] = ksP{true, false, p[i-1][k].set} // Solution exists for k. But the solution does not include i.
+				p[i][k] = ksP{true, false, 0, p[i-1][k].set} // Solution exists for k. But the solution does not include i.
 			} else if weightMinusItem >= 0 {
 				if p[i-1][weightMinusItem].exist {
 					x.log("else if if: i: %d, k: %d, itemWeight: %d, weightMinusItem: %d\n", i, k, itemWeight, weightMinusItem)
 					tempSet := append(p[i-1][weightMinusItem].set, itemWeight)
-					p[i][k] = ksP{true, true, tempSet}
+					p[i][k] = ksP{true, true, 0, tempSet}
 				}
 			}
 		}
 	}
-
+	return p
+}
+func (x *NTU) knapsackExact01Manber5_8(S []int, targetWeight int) map[int]map[int]ksP {
+	p := make(map[int]map[int]ksP) // First key the row index. Second key is the weight (column) (ranges from 0 to K).
+	if len(S) == 0 {
+		return p
+	}
+	for i := range S {
+		p[i] = make(map[int]ksP)
+		p[i][0] = ksP{true, false, 0, []int{}} // weight 0 => solution is the empty set.
+	}
+	p[0][S[0]] = ksP{true, true, 0, []int{S[0]}}
+	for i := 1; i < len(S); i++ {
+		itemWeight := S[i]
+		for k := 0; k <= targetWeight; k++ {
+			weightMinusItem := k - itemWeight
+			if weightMinusItem >= 0 && p[i-1][weightMinusItem].exist {
+				tempSet := append(p[i-1][weightMinusItem].set, itemWeight)
+				p[i][k] = ksP{true, true, 0, tempSet}
+			} else if p[i-1][k].exist {
+				p[i][k] = ksP{true, false, 0, p[i-1][k].set}
+			}
+		}
+	}
 	return p
 }
 
-// Supplementary Ex. 41, from file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/Me/Books/Rosen%20-%20Discrete%20Mathematics%20and%20Its%20Applications%207th.ed.%20(2012).pdf
-// Returns the largest possible total weight of a subset of items that do not exceed capacity.
-func rosenKnapsack(capacity float64, items []float64) []int {
-	return []int{}
+func (x *NTU) knapsackRecover(items []int, target int, solutions map[int]map[int]ksP) []int {
+	solution := []int{}
+
+	i := len(items) - 1
+	_, ok := solutions[i][target]
+	if !ok {
+		return nil
+	}
+	// fmt.Printf("%+v\n", solutions)
+	for target > 0 && i >= 0 {
+		// fmt.Println(target, i)
+		if solutions[i][target].belong {
+			solution = append(solution, items[i])
+			target -= items[i]
+		}
+		i--
+	}
+
+	return solution
+}
+func (x *NTU) knapsackExactUnlimited(S []int, targetWeight int) map[int]map[int]ksPU {
+	p := make(map[int]map[int]ksPU) // First key the row index. Second column is the weight (ranges from 0 to K).
+	if len(S) == 0 {
+		return p
+	}
+	for i := range S {
+		p[i] = make(map[int]ksPU)
+		p[i][0] = ksPU{true, 0, []int{}} // weight 0 => solution is the empty set.
+		p[i][S[i]] = ksPU{true, 1, []int{S[i]}}
+	}
+
+	{
+		// This is for handling the first item in the list.
+		weight := S[0]
+		for {
+			belong := p[0][weight].belong + 1
+			tempSet := append(p[0][weight].set, S[0])
+			weight += S[0]
+			if weight > targetWeight {
+				break
+			}
+			p[0][weight] = ksPU{true, belong, tempSet}
+		}
+	}
+	for i := 1; i < len(S); i++ {
+		for k := 0; k <= targetWeight; k++ {
+			weightMinusItem := k - S[i]
+			if p[i-1][k].exist {
+				p[i][k] = ksPU{true, 0, p[i-1][k].set} // Solution exists for k. But the solution does not include i.
+			} else if weightMinusItem >= 0 {
+				if p[i][weightMinusItem].exist {
+					// make a copy to avoid a classic Go gotcha.
+					// tempSet := append(int{S[i]}, p[i][j].set...) // This is O(n)
+					tempSlice := ut.CopyAndAppendSlice(p[i][weightMinusItem].set, S[i])
+					belong := p[i][weightMinusItem].belong + 1
+					p[i][k] = ksPU{true, belong, tempSlice}
+				}
+			}
+		}
+	}
+	return p
+}
+
+func (x *NTU) knapsackExactValued(S []int, v []int, targetWeight int) map[int]map[int]ksP {
+	p := make(map[int]map[int]ksP) // First key the row index. Second column is the weight (ranges from 0 to K).
+	if len(S) == 0 {
+		return p
+	}
+	for i := range S {
+		p[i] = make(map[int]ksP)
+		p[i][0] = ksP{true, false, 0, []int{}} // weight 0 => solution is the empty set.
+	}
+
+	p[0][S[0]] = ksP{true, true, v[0], []int{S[0]}} // This is needed for a correct result e.g. {1,2,3}, k = 6.
+	for i := 1; i < len(S); i++ {
+		itemWeight := S[i]
+		for k := 0; k <= targetWeight; k++ {
+			if p[i-1][k].exist {
+				x.log("if: i: %d, k: %d, itemWeight: %d\n", i, k, itemWeight)
+				p[i][k] = ksP{true, false, p[i-1][k].value, p[i-1][k].set}
+			}
+			weightMinusItem := k - itemWeight
+			if weightMinusItem >= 0 {
+				valueCandidate := p[i-1][weightMinusItem].value + v[i]
+				// fmt.Printf("%d\t", valueCandidate)
+				if valueCandidate > p[i][k].value {
+					// fmt.Printf("else if if: i: %d, k: %d, itemWeight: %d, weightMinusItem: %d, valueCandidate: %d\n", i, k, itemWeight, weightMinusItem, valueCandidate)
+					tempSet := append(p[i-1][weightMinusItem].set, itemWeight)
+					p[i][k] = ksP{true, true, valueCandidate, tempSet}
+				}
+			}
+		}
+	}
+	return p
 }
 
 // By Gemini
@@ -360,47 +495,6 @@ func (x *NTU) knapsackGemini(S []int, K int) [][]Cell {
 		}
 	}
 	return P
-}
-
-// returns the smallest m F(m) where the bitPattern appears. If it does not appear for n then returns -1
-func (x *NTU) FindFibonacciWordSequence(bitPattern string, n int) int {
-	if bitPattern == "0" && n >= 0 {
-		return 0
-	}
-	if bitPattern == "1" && n >= 1 {
-		return 1
-	}
-	if !(bitPattern != "" && n >= 2) {
-		return -1
-	}
-	p_len := len(bitPattern)
-	m := 2
-	f, f1, f2 := "10", "1", "0"
-	l, l1, l2 := 2, 1, 1
-	for l < p_len {
-		m++
-		f, f1, f2 = f1+f2, f, f1
-		l, l1, l2 = l1+l2, l, l1
-	}
-	ch6 := CH6{}
-	bitPattern = ""
-	for _, v := range ch6.computeKMPNext(bitPattern, false)[1:] {
-		bitPattern += strconv.Itoa(v)
-	}
-	found, i := false, 0
-	for !found && i < 4 {
-		kmpResult := ch6.stringMatchKMP(f, bitPattern)
-		if kmpResult != -1 {
-			found = true
-		} else {
-			i++
-			f, f1, f2 = f1+f2, f, f1
-		}
-	}
-	if found {
-		return m + i
-	}
-	return -1
 }
 
 // This does not give us the actual subsequence. Just the maximum length.

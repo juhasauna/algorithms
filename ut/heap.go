@@ -3,7 +3,6 @@ package ut
 import (
 	"fmt"
 	"log"
-	"slices"
 	"testing"
 )
 
@@ -61,41 +60,25 @@ func (h *Heap) Swap(i, j int) {
 	}
 }
 
-func (x *Heap) GetSortedValues(descending bool) []int {
-	sorted := x.SortInplace()
-	if x.IsMin && !descending {
-		slices.Reverse(sorted)
-		return sorted
-	} else if !x.IsMin && descending {
-		slices.Reverse(sorted)
-		return sorted
-	}
-	return sorted
-}
-func HeapSort(seq []int, descending bool) []int {
-	{
-		// TODO:Let's keep the original seq intact.
-		// originalSeq := slices.Clone(seq)
-		// defer func(orig []int) { seq = orig }(originalSeq)
-	}
-	x := Heap{Imp: seq}
-	return x.GetSortedValues(descending)
+func HeapSort(seq []int, ascending bool) ([]int, Heap) {
+	h := NewHeap(seq, !ascending)
+	return h.Sort(h.Size() - 1), h
 }
 
-func (x Heap) SortInplace() []int {
-	return x.sortHelper(x.Size() - 1)
-}
-
-func (h Heap) sortHelper(end int) []int {
+func (h *Heap) Sort(end int) []int {
+	h.iters++
 	if end < 1 {
 		return h.Imp
 	}
-
+	// for i := range end + 1 {
+	// 	fmt.Println(end, i, h.Imp[i])
+	// }
+	// fmt.Println()
 	h.Swap(0, end)
 	end--
 
 	h.heapifyDown(0, end)
-	return h.sortHelper(end)
+	return h.Sort(end)
 }
 
 // Top-down insertion: O(n*log n)
@@ -272,7 +255,7 @@ func (h *Heap) Heapify() {
 	}
 }
 
-func (h *Heap) heapifyDown(parent, lastIndex int) {
+func (h *Heap) heapifyDown(parent, n int) {
 	compare := func(a, b int) bool {
 		c := h.Imp[a] <= h.Imp[b]
 		if h.IsMin {
@@ -281,24 +264,25 @@ func (h *Heap) heapifyDown(parent, lastIndex int) {
 		return c
 	}
 
-	for {
-		leftChild := h.LeftChild(parent)
-		if leftChild > lastIndex {
+	var recurse func(p int)
+	recurse = func(p int) {
+		h.iters++
+		l := h.LeftChild(p)
+		if l > n {
 			return
 		}
-		newParent := leftChild
-		rightChild := leftChild + 1
-		if rightChild <= lastIndex {
-			if compare(leftChild, rightChild) {
-				newParent = rightChild // NOTE: Preference on equal weights. This should be consistent with heapifyUp.
+		r := l + 1
+		if r <= n {
+			if compare(l, r) {
+				l = r // NOTE: Preference on equal weights. This should be consistent with heapifyUp.
 			}
 		}
-		if compare(newParent, parent) {
-			return
+		if !compare(l, p) {
+			h.Swap(p, l)
+			recurse(l)
 		}
-		h.Swap(parent, newParent)
-		parent = newParent
 	}
+	recurse(parent)
 }
 
 type DijkstraNode struct {

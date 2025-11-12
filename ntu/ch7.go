@@ -14,7 +14,6 @@ type Edge struct {
 	b int
 }
 
-// file:///C:/Users/FIJUSAU/OneDrive%20-%20ABB/courses/Vaihto/TaiwanTech/algorithms_2024_material/alg2024hw7_s.pdf
 // Ex. 1
 func (x *CH7) FindEulerianCircuitPseudo(eGraph *ut.EulerianGraph) ([]int, []Edge) {
 	if !eGraph.IsEulerian() {
@@ -61,17 +60,6 @@ func (x *CH7) FindEulerianCircuitPseudo(eGraph *ut.EulerianGraph) ([]int, []Edge
 	f(0)
 	return vertexPathStack, edgeStack
 }
-
-// func (x *CH7) ConstructEulerCircuit(eGraph ut.EulerianGraph) {
-// 	eGraph.RemoveCircuit()
-// 	for eGraph.HasEdges() {
-// 		subCircuit := eGraph.HierholzerFirst()
-// 		l := len(subCircuit)
-// 		lastSubCircuitNode := subCircuit[l-1]
-// 		//
-// 		// g.RemoveIsolatedNodes()
-// 	}
-// }
 
 // 2 (7.28, p.269) A binary de Bruijn sequence
 func (x *CH7) BinaryDeBruijinSequence() {

@@ -2,5 +2,15 @@
     "files.watcherExclude": {
         "**/target": true
     },
-    "go.testFlags": ["-v"]
+    "go.testFlags": [
+        "-v"
+    ],
+    "gopls": {
+        "analyses": {
+            "unusedparams": false,
+            "unusedvariable": false,
+            "unusedwrite": false
+        },
+        "staticcheck": false
+    }
 }

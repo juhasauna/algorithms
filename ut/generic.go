@@ -117,7 +117,7 @@ func Max[T constraints.Ordered](a, b T) T {
 	}
 	return b
 }
-func NewMinAndMax[T constraints.Ordered](min, max, value T) (T, T) {
+func UpdateMinAndMax[T constraints.Ordered](min, max, value T) (T, T) {
 	if min > value {
 		return value, max
 	}
@@ -221,4 +221,33 @@ func ShuffleSlice[T any](s []T) {
 	r.Shuffle(len(s), func(i, j int) {
 		s[i], s[j] = s[j], s[i]
 	})
+}
+
+func CopyAndAppendSlice[T any](s []T, item T) []T {
+	l := len(s)
+	temp := make([]T, l+1)
+	copy(temp, s)
+	temp[l] = item
+	return temp
+}
+func SliceSwap[T any](s []T, i int, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func GetMedianOfThreePivotIdex[T constraints.Ordered](s []T) int {
+
+	n := len(s) - 1
+	mid := n / 2
+	if mid < 2 {
+		return mid
+	}
+	a := s[0]
+	b := s[mid]
+	c := s[n]
+
+	if (a > b && a < c) || (a < b && a > c) {
+		return 0
+	} else if (b > a && b < c) || (b < a && b > c) {
+		return mid
+	}
+	return n
 }

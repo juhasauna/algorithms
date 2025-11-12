@@ -1,0 +1,17 @@
+Dijkstras(G, v): // Determine single source shortest path
+    // v is the staring node
+    for all vertices w:
+        w.mark = false
+        w.SP = inf
+
+    v.SP = 0
+
+    while there are unmarked vertices:
+        w = GetUnmarkedVerticeWithMinSP()
+        w.mark = true
+        for all edges (w, z) where z.mark = false
+            candidate = w.SP + length(w,z)
+            if candidate < z.SP then
+                z.SP = candidate
+    // What is the result?
+    // Answer: list of vertices w_i with each having the SP-length from v to w_i.

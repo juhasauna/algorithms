@@ -1,0 +1,9 @@
+2           // Two test cases
+3 5         // Three cats. Five pots (and 5 plants)
+2 2 1 5     // Cat #1 should stop at 2. Likes 2 plants: [1, 5]
+2 3 1 4 5   // Cat #2 should stop at 3. Likes 3 plants: [1, 4, 5]
+4 2 3 4     // Cat #3 should stop at 4. Likes 2 plants: [3, 4]
+3 5         //
+2 2 1 5     // Cat #1 should stop at 2. Likes 2 plants: [1, 5]
+2 3 1 4 5   // Cat #2 should stop at 2. Likes 3 plants: [1, 4, 5]
+5 2 3 4     // Cat #3 should stop at 5. Likes 2 plants: [3, 4]
