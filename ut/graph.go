@@ -391,7 +391,7 @@ func (x *UndirectedEdges) Remove(a, b string) {
 	}
 }
 func (x *UndirectedEdges) RemoveAllNodeEdges(node string) {
-	for key, _ := range (*x)[node] {
+	for key := range (*x)[node] {
 		x.Remove(node, key)
 	}
 }

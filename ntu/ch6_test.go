@@ -335,7 +335,7 @@ func quickSortTest(t *testing.T) {
 		x.PartitionFromPseudo(tt.seq, 0, len(tt.seq)-1)
 		fmt.Println(x.iters, len(tt.seq))
 		x.iters = 0
-		return
+		// return
 		got := x.quickSort(tt.seq)
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("FAIL got: %d, want: %d", got, want)

@@ -7,9 +7,12 @@
             "command": "powershell",
             "args": [
                 "-NoProfile",
-                "-ExecutionPolicy", "Bypass",
-                "-File", "${workspaceFolder}\\.vscode\\run_test_from_file.ps1",
-                "-goFile", "${file}"
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\run_test_from_file.ps1",
+                "-goFile",
+                "${file}"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -21,5 +24,9 @@
             },
             "problemMatcher": []
         }
-    ]
+    ],
+    "presentation": {
+        "echo": false,
+        "showReuseMessage": false
+    }
 }

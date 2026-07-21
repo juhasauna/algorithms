@@ -78,3 +78,91 @@ LongestCommonSubsequence(x, y):
                 DP[i,j] = max{DP[i-1,j], DP[i,j-1]}
 
     return DP[x][y]
+
+LongestIncreasingSubsequence(x, n):
+    L := array of length n, elements initialized to one
+    for i := 1 to n:
+        j := 1
+        while j < i:
+            for k = 1 to j:
+                MAX := 0
+                if x[i] > x[k]:
+                    candidate := L[k]
+                    if candidate > MAX:
+                        MAX = candidate
+                    
+            if MAX >= L[i]:
+                L[i] = MAX + 1
+            j++
+
+    MAX := 0
+    for i := range len(L):
+        candidate := L[i]
+        if candidate > MAX:
+            MAX = candidate
+    return MAX
+
+
+# The number of valid multiplication orders is the Catalan number.
+MatrixChainMultiplication(p): 
+    # p := dimensions from 0 to n
+    # p_0 = # rows in the first matrix
+    # p_1 = # columns in the first matrix
+    # p_n = # columns in the last matrix
+
+    DP := table of size n by n
+
+    for l := 2 to n:
+        for i := 1 to n - l + 1:
+            j := i + l - 1
+            DP[i][j] := BIG_INT
+            for k := i to j-1:
+                subproblem_sum := DP[i][k] + DP[k+1][j]
+                # k denotes an index after which where we are placing ")("
+                k_split_multiplications := p[i-1] * p[k] * p[j]
+                candidate := subproblem_sum + k_split_multiplications
+                if candidate < DP[i][j]:
+                    DP[i][j] = candidate
+
+    return DP[1][n]
+
+
+RodCutting(p, l):
+    # p gives the prices for 0-l
+    # p[0] = 0
+    # p[i] > 0, for 1 < i <= l
+    # l is the length of the rod
+    DP := array [0:n]
+    DP[0] = 0
+
+    for j := 1 to n:
+        q := -inf
+        for i := 1 to j:
+            q := max{q, p[i] + DP[j-i]}
+        DP[j] = q
+    
+    return DP[n]
+
+
+activitySelectionCLRS_15_1():
+	# S given activities sorted by finish time.
+    # c[i, j] optimal solution on interval i to j
+    n := len(S)
+    c := table of integers of size n by n
+
+    choice := optimal subset of S
+
+    for i := 0 to n:
+        c[i, i+1] = 0
+    
+    for l := 2 to n+1:
+        for i := 0 to n + 1 - l:
+            j := i + l
+            c[i, j] = 0
+
+            for k := i + 1 to l:
+                candidate := c[i, k] + 1 + c[k, j] 
+                if candidate > c[i, j]:
+                    c[i, j] = candidate
+                    choice[i, j] = k
+            

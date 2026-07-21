@@ -633,10 +633,10 @@ func knapsackExactTest(t *testing.T) {
 				// got := x.knapsackExact01(tt.S, tt.K)
 				got := x.knapsackExact01Manber5_8(tt.S, tt.K)
 				t.Logf("gotExact %v\n", got)
-				return
+				// return
 				gotRecover := x.knapsackRecover(tt.S, tt.K, got)
 				t.Logf("gotRecover %v", gotRecover)
-				return
+				// return
 				solutionExists := x.checkKnapsackResult(t, got, tt.K)
 				if solutionExists != tt.solutionExists.one_zero {
 					t.Errorf("solutionExists: %t, want: %t", solutionExists, tt.solutionExists.one_zero)

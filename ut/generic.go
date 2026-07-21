@@ -73,7 +73,7 @@ func ToSet[T comparable](slice []T) map[T]struct{} {
 
 func Uniquify[T comparable](slice []T) []T {
 	result := []T{}
-	for key, _ := range ToSet(slice) {
+	for key := range ToSet(slice) {
 		result = append(result, key)
 	}
 	return result
