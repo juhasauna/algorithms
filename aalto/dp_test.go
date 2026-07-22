@@ -13,10 +13,72 @@ func Test_dp(t *testing.T) {
 	// longestIncreasingSubsequenceTest(t)
 	// matrixChainMultiplicationTest(t)
 	// rodCuttingTest(t)
-	weightedIntervalSchedulingTest(t)
+	// weightedIntervalSchedulingTest(t)
 	// activitySelectionTest(t)
 	// longestPalindromicSubsequenceTest(t)
+	// longestPalindromeTest(t)
+	scrambledStringsTest(t)
+}
 
+func scrambledStringsTest(t *testing.T) {
+	tests := []struct {
+		name string
+		a    string
+		b    string
+		want bool
+	}{
+		// {"", "a", "b", false},
+		// {"", "a", "a", true},
+		// {"", "aa", "aa", true},
+		// {"", "ab", "ab", true},
+		// {"", "ab", "ba", true},
+		// {"", "abcd", "abcd", true},
+		// {"", "abcd", "cdab", true},
+		// {"", "abcd", "dcab", true},
+		// {"", "abcd", "dcba", true},
+		// {"", "abcd", "bacd", true},
+		// {"", "abcd", "badc", true},
+		// {"", "abcd", "cadb", false},
+		// {"", "abcd", "bdac", false},
+		{"", "ABCDE", "ABCDE", true},
+	} // TODO: Next time implement a recursive version of this
+	for _, tt := range tests {
+		got := scrambledStrings(tt.a, tt.b)
+		if got != tt.want {
+			t.Errorf("got/want (%t/%t)", got, tt.want)
+		} else {
+			t.Log(got)
+		}
+	}
+}
+func longestPalindromeTest(t *testing.T) {
+	tests := []struct {
+		name     string
+		x        string
+		wantLent int
+		want     string
+	}{
+		{"", "a", 1, "a"},
+		{"", "aa", 2, "aa"},
+		{"", "aaa", 3, "aaa"},
+		{"", "aaaa", 4, "aaaa"},
+		{"", "abccba", 6, "abccba"},
+		{"", "abccbaaa", 6, "abccba"},
+
+		{"", "abcba", 5, "abcba"},
+		{"", "abcbaaa", 5, "abcba"},
+		{"", "bbbabcbaaa", 5, "abcba"},
+
+		{"", "forgeeksskeegfor", 10, "geeksskeeg"},
+	}
+	for _, tt := range tests {
+		got := longestPalindrome(tt.x)
+		if got != tt.want {
+			t.Errorf("got/want (%s/%s)", got, tt.want)
+		} else {
+			t.Log(got)
+		}
+	}
 }
 
 func weightedIntervalSchedulingTest(t *testing.T) {

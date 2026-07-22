@@ -1,4 +1,4 @@
-Longest_palindromic_subsequence(x[1..n]):
+LongestPalindromicSubsequence(x[1..n]):
     # 1-based indexing
     DP := table of size n by n.
     for i := 1 to n:
@@ -166,3 +166,35 @@ activitySelectionCLRS_15_1():
                     c[i, j] = candidate
                     choice[i, j] = k
             
+
+LongestPalindrome(x[1..n]):
+    DP := n by n table of booleans initialized to false
+    for i = range n-1:
+        DP[i][i] = true
+        DP[i][i+1] = x[i]==x[i+1]
+    
+    DP[n][n] = true
+
+    for l := 3 to n:
+        for i := 1 to n - l + 1:
+            j := l + i - 1
+            DP[i][j] = DP[i+1][j-1] AND x[i] == x[j] 
+
+    return {S[i][j] | DP[i][j] AND S[i][j] = max_len}
+    
+ScrambledStrings(A, B):
+    S := k × k × (k+1) table of booleans initialized to false
+
+    # Base case: substrings of length 1
+    for i := 0 to k-1:
+        for j := 0 to k-1:
+            S[i, j, 1] := (A[i] = B[j])
+
+    for l := 2 to k:
+        for i := 0 to k-l:
+            for j := 0 to k-l:
+                for s := 1 to l-1:
+                    sameOrder := S[i, j, s] and S[i+s, j+s, l-s]
+                    flipOrder := S[i, j+l-s, s] and S[i+s, j, l-s]
+                    S[i, j, l] := S[i, j, l] or sameOrder or flipOrder
+    return S[0, 0, k]

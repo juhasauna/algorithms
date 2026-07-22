@@ -446,3 +446,64 @@ func activitySelectionDP(jobs []job) ([]job, int) {
 	reconstruct(0, n-1)
 	return selection, DP[0][n-1]
 }
+
+func longestPalindrome(x string) string {
+	n := len(x)
+	dp := make([][]bool, n)
+	for i := range n {
+		dp[i] = make([]bool, n)
+		dp[i][i] = true
+		if i < n-1 {
+			dp[i][i+1] = x[i] == x[i+1]
+		}
+	}
+	for l := 3; l <= n; l++ {
+		for i := 0; i < n-l+1; i++ {
+			j := i + l - 1
+			isPalindrome := dp[i+1][j-1] && x[i] == x[j]
+			dp[i][j] = isPalindrome
+		}
+	}
+	best, q, r := 0, 0, 0
+	for i, v := range dp {
+		for j := i; j < n; j++ {
+			if v[j] {
+				best = max(best, j-i+1)
+				if best == j-i+1 {
+					q, r = i, j
+
+				}
+			}
+		}
+	}
+	return x[q : r+1]
+}
+
+func scrambledStrings(a, b string) bool {
+	n := len(a)
+	if n != len(b) {
+		log.Fatal("input lengths must match")
+	}
+	dp := make([][][]bool, n)
+	for i := range n {
+		dp[i] = make([][]bool, n)
+		for j := range n {
+			dp[i][j] = make([]bool, n+1)
+			dp[i][j][1] = a[i] == b[j]
+		}
+	}
+
+	for l := 2; l <= n; l++ {
+		for i := 0; i+l <= n; i++ {
+			for j := 0; j+l <= n; j++ {
+				for s := 1; s < l; s++ {
+					sameOrder := dp[i][j][s] && dp[i+s][j+s][l-s]
+					flipOrder := dp[i][j+l-s][s] && dp[i+s][j][l-s]
+					dp[i][j][l] = dp[i][j][l] || sameOrder || flipOrder
+				}
+			}
+		}
+	}
+
+	return dp[0][0][n]
+}
