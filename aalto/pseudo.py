@@ -198,3 +198,13 @@ ScrambledStrings(A, B):
                     flipOrder := S[i, j+l-s, s] and S[i+s, j, l-s]
                     S[i, j, l] := S[i, j, l] or sameOrder or flipOrder
     return S[0, 0, k]
+
+
+Fibonacci(k):
+    DP[0] = 0
+    DP[1] = 1
+
+    for i := 2 to k:
+        DP[i] = DP[i-1] + DP[i-2]
+
+    return DP[k]
