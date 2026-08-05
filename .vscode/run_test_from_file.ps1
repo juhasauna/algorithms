@@ -13,7 +13,6 @@ if ($base -notmatch '_test\.go$') {
   exit 1
 }
 
-# bom_test.go -> bom
 $prefix = $base -replace '_test\.go$', ''
 $testName = "Test_$prefix"
 
@@ -26,3 +25,4 @@ try {
 } finally {
   Pop-Location
 }
+

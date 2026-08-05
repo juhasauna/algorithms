@@ -15,9 +15,9 @@ func Test_dp(t *testing.T) {
 	// longestCommonSubsequenceTest(t)
 	// longestIncreasingSubsequenceTest(t)
 	// longestPalindromeTest(t)
-	optimalBSTTest(t)
+	// optimalBSTTest(t)
 	// longestPalindromicSubsequenceTest(t)
-	// matrixChainMultiplicationTest(t)
+	matrixChainMultiplicationTest(t)
 	// rodCuttingTest(t)
 	// scrambledStringsTest(t)
 	// tournamentProbabilityTest(t)
@@ -30,18 +30,26 @@ func optimalBSTTest(t *testing.T) {
 		f    []int
 		want int
 	}{
-		{name: "2", f: []int{10, 20}, want: 40},
-		{name: "3", f: []int{34, 8, 50}, want: 142},
-		{name: "", f: []int{6, 3, 1}, want: 15},
-		{name: "4", f: []int{4, 2, 6, 3}, want: 26},
-		{name: "4", f: []int{213, 20, 547, 100, 120}, want: 1573},
-		{name: "7", f: []int{4, 2, 6, 3, 5, 1, 7}, want: 63},
+		// {name: "2", f: []int{10, 20}, want: 40},
+		// {name: "3", f: []int{34, 8, 50}, want: 142},
+		// {name: "", f: []int{6, 3, 1}, want: 15},
+		// {name: "4", f: []int{4, 2, 6, 3}, want: 26},
+		// {name: "4", f: []int{213, 20, 547, 100, 120}, want: 1573},
+		// {name: "7", f: []int{4, 2, 6, 3, 5, 1, 7}, want: 63},
 		{name: "", f: []int{12, 3, 18, 7, 25, 4, 10, 15, 2, 20, 6, 14, 9, 5, 16}, want: 480},
 	}
 	got := 0
 	for _, tt := range tests {
-		got = optimalBST(tt.f)
+		got = optimalBSTDrawIt(tt.f)
+		// got = optimalBST(tt.f)
 		t.Logf("got: %d, counter: %d\n", got, counter)
+		counter = 0
+		// got = oBST(tt.f)
+		// t.Logf("oBST: %d, counter: %d\n", got, counter)
+		// counter = 0
+		// got = oBSTTopDownMemoized(tt.f)
+		// t.Logf("memo: %d, counter: %d\n", got, counter)
+		// counter = 0
 		if got != tt.want {
 			t.Errorf("got/want (%d/%d)", got, tt.want)
 		} else {
@@ -102,18 +110,31 @@ func cuttingOrderTest(t *testing.T) {
 	tests := []struct {
 		name string
 		l    []int
-		n    int
 		want int
 	}{
-		{"", []int{1}, 10, 10},
-		{"", []int{2}, 10, 10},
-		{"", []int{5}, 10, 10},
-		{"", []int{3, 9}, 10, 17},
-		{"", []int{2, 8, 10}, 20, 38},
+		// {"", []int{2, 10}, 10},
+		// {"", []int{3, 9, 10}, 17},
+		// {"", []int{2, 8, 10, 20}, 38},
+		// {"", []int{2, 8, 10, 20, 25}, 58},
+		// {"", []int{6, 8, 18}, 26},
+		// {"", []int{2, 12}, 12},
+		{"", []int{2, 5, 9, 14, 18, 23, 27, 30}, 90},
+		{"", []int{3, 8, 10, 15, 21, 24, 29, 35}, 105},
 	}
+	got := 0
 	for _, tt := range tests {
-		// got := cuttingOrder(tt.l, tt.n)
-		got := cuttingOrderBottomUp(tt.l, tt.n)
+		got = cuttingOrderMemo(tt.l)
+		t.Logf("memo:\t%d, counter: %d, \t%d\n", tt.want, counter, got)
+		counter = 0
+		// got = cuttingOrder(tt.l)
+		// t.Logf("normal:\t%d, counter: %d, \t%d\n", tt.want, counter, got)
+		// counter = 0
+		// got = cuttingOrderSUCK(tt.l)
+		// t.Logf("suck:\t%d, counter: %d, \t%d\n", tt.want, counter, got)
+		// counter = 0
+		got = cuttingOrderBottomUp(tt.l)
+		t.Logf("bottomUp:\t%d, counter: %d, \t%d\n", tt.want, counter, got)
+		counter = 0
 		if got != tt.want {
 			t.Errorf("got/want (%d/%d)", got, tt.want)
 		} else {
@@ -323,19 +344,27 @@ func matrixChainMultiplicationTest(t *testing.T) {
 	}{
 		// {"", []int{2, 2, 2}, 8},
 		// {"", []int{2, 3, 1}, 6},
-		{"", []int{2, 3, 5}, 30},
+		// {"", []int{2, 3, 5}, 30},
+		// {"", []int{2, 3, 5, 10}, 130},
 		{"", []int{10, 30, 5, 60}, 4500},
+		{"", []int{50, 20, 1, 10, 100}, 7000},
 		{"", []int{30, 35, 15, 5, 10, 20, 25}, 15125},
 		{"", []int{5, 10, 3, 12, 5, 50, 6}, 2010},
 	}
-
+	got := 0
 	for _, tt := range tests {
-		got := matrixChainMultiplication(tt.x)
-		// got := mcm(tt.x)
+		// got = matrixChainMultiplication(tt.x)
+		// t.Logf("DP, counter: %d, got: %d", counter, got)
+		// counter = 0
+		// got = mcm(tt.x)
+		// t.Logf("mcm, counter: %d, got: %d", counter, got)
+		// counter = 0
+		got = mcmMemo(tt.x)
+		t.Logf("mcmMemo, counter: %d, got: %d", counter, got)
 		if got != tt.want {
 			t.Errorf("got/want (%d/%d)", got, tt.want)
 		} else {
-			t.Log(got)
+			// t.Log(got)
 		}
 	}
 }
@@ -369,22 +398,30 @@ func longestCommonSubsequenceTest(t *testing.T) {
 		y    string
 		want int
 	}{
-		{"", "cab", "abc", 2},
-		{"", "ABCD", "ACBD", 3},
+		// {"", "cab", "abc", 2},
+		// {"", "ABCD", "ACBD", 3},
+		// {"", "ABCDGH", "AEDFHR", 3},
+		// {"", "XMJYAUZQWERTY", "MZJAWXUERT", 7},
 		{"alg2021_final", "abcabcabc", "aaabbbccc", 5},
-		{"", "ABCBDAB", "BDCABAA", 4},
-		{"allow for diff. lenghts", "abcabcabc", "abccc", 5},
-		{"allow for diff. lenghts", "abcabcabc", "abbcc", 5},
+		// {"", "ABCBDAB", "BDCABAA", 4},
+		// {"allow for diff. lenghts", "abcabcabc", "abccc", 5},
+		// {"allow for diff. lenghts", "abcabcabc", "abbcc", 5},
 	}
+	got := 0
 	for _, tt := range tests {
-		// got := longestCommonSubsequence(tt.x, tt.y)
-		// got := lcsSlow(tt.x, tt.y)
-		got := lcsMemoization(tt.x, tt.y)
+		// got = lcsBottomUp(tt.x, tt.y)
+		// t.Logf("DP: \t%d", got)
+		// got = lcsMemo(tt.x, tt.y)
+		// t.Logf("memo:\t%d", got)
+		got = lcs(tt.x, tt.y)
+		t.Logf("lcs:\t%d", got)
+		got = lcsDP(tt.x, tt.y)
+		t.Logf("DP: \t%d", got)
 
 		if got != tt.want {
 			t.Errorf("got/want (%d/%d)", got, tt.want)
 		} else {
-			t.Log(got)
+			// t.Log(got)
 		}
 	}
 }

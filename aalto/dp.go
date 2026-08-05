@@ -1,8 +1,10 @@
 package aalto
 
 import (
+	"fmt"
 	"log"
 	"sort"
+	"strconv"
 )
 
 var counter int
@@ -100,20 +102,18 @@ func tournamentProbability(n, start_i, start_j int) float32 {
 }
 
 // LongestCommonSubsequence
-func lcsSlow(x, y string) int {
-	if len(x)*len(y) == 0 {
+func lcs(x, y string) int {
+	n, m := len(x), len(y)
+	if n == 0 || m == 0 {
 		return 0
 	}
-	if x == y {
-		return len(x)
-	}
 	if x[0] == y[0] {
-		// Move forwards on both strings, otherwise "a" and "aaa" -> LCS=3
-		return lcsSlow(x[1:], y[1:]) + 1
+		return lcs(x[1:], y[1:]) + 1
 	}
-	return max(lcsSlow(x[1:], y), lcsSlow(x, y[1:]))
+	return max(lcs(x[1:], y), lcs(x, y[1:]))
 }
-func lcsMemoization(x, y string) int {
+
+func lcsMemo(x, y string) int {
 	n, m := len(x), len(y)
 	memo := make([][]int, n)
 	for i := range memo {
@@ -178,15 +178,44 @@ func longestIncreasingSubsequence(x []int) int {
 }
 func mcm(p []int) int {
 	n := len(p)
-	if n <= 2 {
+	if n < 3 {
 		return 0
 	}
-	best := 1 << 20
+
+	best := 1<<32 - 1
 	for k := 1; k < n-1; k++ {
-		candidate := mcm(p[:k+1]) + mcm(p[k:]) + p[0]*p[k]*p[n-1]
-		best = min(best, candidate)
+		counter++
+		left, right := p[:k+1], p[k:n]
+		m := p[0] * p[k] * p[n-1]
+		best = min(best, mcm(left)+m+mcm(right))
 	}
 	return best
+}
+
+func mcmMemo(p []int) int {
+	n := len(p)
+	memo := make([][]int, n)
+	for i := range n {
+		memo[i] = make([]int, n)
+	}
+	var recurse func(i, j int) int
+	recurse = func(i, j int) int {
+		if i >= j {
+			return 0
+		}
+		if memo[i][j] != 0 {
+			return memo[i][j]
+		}
+		best := 1<<32 - 1
+		for k := i + 1; k <= j; k++ {
+			counter++
+			m := p[i] * p[k] * p[j+1]
+			best = min(best, recurse(i, k-1)+m+recurse(k, j))
+		}
+		memo[i][j] = best
+		return best
+	}
+	return recurse(0, n-2)
 }
 
 func matrixChainMultiplication(p []int) int {
@@ -200,6 +229,7 @@ func matrixChainMultiplication(p []int) int {
 			j := i + l - 1
 			dp[i][j] = 1 << 30
 			for k := i; k < j; k++ {
+				counter++
 				subprobleSum := dp[i][k] + dp[k+1][j]
 				multByCurrentSplit := p[i] * p[k+1] * p[j+1]
 				candidate := subprobleSum + multByCurrentSplit
@@ -606,55 +636,115 @@ func fibonacciMemoization(k int) int { // Memoization (top-down) typically done 
 }
 
 // 14-9 Breaking a string
-func cuttingOrder(l []int, n int) int {
-	if len(l) == 0 || n == 0 {
+func cuttingOrderBottomUp(l []int) int {
+	l = append([]int{0}, l...)
+	n := len(l)
+	dp := make([][]int, n)
+	for i := range n {
+		dp[i] = make([]int, n)
+	}
+
+	for w := 2; w < n; w++ {
+		for i := 0; i+w < n; i++ {
+			j := i + w
+			best := 1 << 10
+			for k := i + 1; k < j; k++ {
+				counter++
+				candidate := dp[i][k] + dp[k][j]
+				best = min(best, candidate)
+			}
+			dp[i][j] = l[j] - l[i] + best
+		}
+	}
+	// fmt.Println(dp)
+	return dp[0][n-1]
+}
+
+func cuttingOrderSUCK(l []int) int {
+	counter++
+	n := len(l)
+	if n == 0 {
+		return 0
+	} else if n == 1 {
 		return 0
 	}
-	for _, v := range l {
-		if v > n {
-			log.Fatal("invalid input\t", v, n)
-		}
-	}
-	best := 1<<31 - 1
-	for _, v := range l {
-		var leftL, rightL []int
-		for _, w := range l {
+
+	m := l[n-1]
+	best := 1 << 10
+	for _, v := range l[:n-1] {
+		var left, right []int
+		for _, w := range l[:n-1] {
 			if w < v {
-				leftL = append(leftL, w)
+				left = append(left, w)
 			} else if w > v {
-				rightL = append(rightL, w-v)
+				right = append(right, w-v)
 			}
 		}
-		candidate := n + cuttingOrder(leftL, v) + cuttingOrder(rightL, n-v)
+
+		left = append(left, v)
+		right = append(right, m-v)
+		candidate := m + cuttingOrderSUCK(left) + cuttingOrderSUCK(right)
 		best = min(best, candidate)
 	}
 	return best
 }
 
-func cuttingOrderBottomUp(l []int, n int) int {
-	l = append([]int{0}, l...) // l contains cuts in ascending order.
-	l = append(l, n)
-	m := len(l)
-	dp := make([][]int, m)
-	for i := range m {
-		dp[i] = make([]int, m)
-	}
+func cuttingOrder(lengths []int) int {
+	lengths = append([]int{0}, lengths...)
+	n := len(lengths)
 
-	for w := 2; w < m; w++ {
-		for i := 0; i+w < m; i++ {
-			j := i + w
-			best := dp[i+1][j]
-			for k := i + 2; k < j; k++ {
-				candidate := dp[i][k] + dp[k][j]
-				if candidate < best {
-					best = candidate
-				}
-			}
-			dp[i][j] = l[j] - l[i] + best
+	var recurse func(i, j int) int
+	recurse = func(i, j int) int {
+
+		l := j - i
+		if l <= 1 {
+			return 0
 		}
+		m := lengths[j] - lengths[i]
+		if l == 2 {
+			return m
+		}
+		best := 1 << 10
+		for k := i + 1; k < j; k++ {
+			counter++
+			left, right := recurse(i, k), recurse(k, j)
+			best = min(best, min(left+right))
+		}
+		return m + best
 	}
-
-	return dp[0][m-1]
+	return recurse(0, n-1)
+}
+func cuttingOrderMemo(lengths []int) int {
+	lengths = append([]int{0}, lengths...)
+	n := len(lengths)
+	memo := make([][]int, n)
+	for i := range n {
+		memo[i] = make([]int, n)
+	}
+	var recurse func(i, j int) int
+	recurse = func(i, j int) int {
+		l := j - i
+		if l <= 1 {
+			return 0
+		}
+		m := lengths[j] - lengths[i]
+		if l == 2 {
+			return m
+		}
+		if memo[i][j] != 0 {
+			return memo[i][j]
+		}
+		best := 1 << 10
+		for k := i + 1; k < j; k++ {
+			counter++
+			left, right := recurse(i, k), recurse(k, j)
+			best = min(best, min(left+right))
+		}
+		best += m
+		memo[i][j] = best
+		return best
+	}
+	return recurse(0, n-1)
 }
 
 func knapsack(weights, values []int, cap int) int {
@@ -957,22 +1047,232 @@ func optimalBST(f []int) int {
 		for i := range n - l + 1 {
 			j := i + l - 1
 			freqs := 0
-			for q := i; q <= j; q++ {
-				// We would benefit from going through an example manually to better undrestand this part.
-				// Good worked example: https://www.youtube.com/watch?v=Xt8kuygspOk
+			for k := i; k <= j; k++ {
 				counter++
 				candidate := 0
-				if q > i {
-					candidate += dp[i][q-1]
+				// When both conditionals below are true, k has 2 child nodes,
+				// which contain subtrees: left: [i..k) and right: (k..j]
+				if k > i {
+					candidate += dp[i][k-1]
 				}
-				if q < j {
-					candidate += dp[q+1][j]
+				if k < j {
+					candidate += dp[k+1][j]
 				}
 				dp[i][j] = min(dp[i][j], candidate)
-				freqs += f[q]
+				freqs += f[k]
 			}
 			dp[i][j] += freqs
 		}
 	}
+	fmt.Println(dp)
 	return dp[0][n-1]
+}
+
+// Todo: Draw the tree from the DP-table (wiht pen & paper)
+func oBST(f []int) int {
+	counter++
+	n := len(f)
+	if n == 0 {
+		return 0
+	} else if n == 1 {
+		return f[0]
+	}
+	freqs := 0
+	for _, v := range f {
+		counter++
+		freqs += v
+	}
+	best := 1 << 10
+	for k := range n {
+		l, r := 0, 0
+		if k > 0 {
+			l = oBST(f[0:k])
+		}
+		if k < n-1 {
+			r = oBST(f[k+1 : n])
+		}
+		best = min(best, l+r)
+	}
+	return best + freqs
+}
+
+func oBSTTopDownMemoized(frequencies []int) int {
+	n := len(frequencies)
+	memo := make(map[string]int, n)
+	for _, v := range frequencies {
+		f := []int{v}
+		memo[makeOBSTMemoKey(f)] = v
+	}
+	memo[""] = 0
+
+	var recurse func(f []int) int
+	recurse = func(f []int) int {
+
+		key := makeOBSTMemoKey(f)
+		if v, ok := memo[key]; ok {
+			return v
+		}
+
+		freqSum := 0
+		for _, v := range f {
+			freqSum += v
+		}
+		m := len(f)
+		best := 1 << 10
+		for k := range m {
+			l, r := 0, 0
+			if k > 0 {
+				l = recurse(f[0:k])
+			}
+			if k < m-1 {
+				r = recurse(f[k+1 : m])
+			}
+			best = min(best, l+r)
+		}
+		best += freqSum
+		memo[key] = best
+		return best
+	}
+
+	return recurse(frequencies)
+}
+
+func makeOBSTMemoKey(f []int) string {
+	s := ""
+	for _, v := range f {
+		counter++
+		intStr := strconv.Itoa(v)
+		s = s + intStr
+	}
+	return s
+}
+
+func optimalBSTDrawIt(f []int) int {
+	n := len(f)
+	dp := make([][]int, n)
+	roots := make([][]int, n)
+	for i := range dp {
+		counter++
+		dp[i] = make([]int, n)
+		dp[i][i] = f[i]
+
+		roots[i] = make([]int, n)
+		roots[i][i] = i
+	}
+	const inf = 1 << 10
+	for i := range n {
+		for j := i + 1; j < n; j++ {
+			counter++
+			dp[i][j] = inf
+		}
+	}
+	for l := 2; l <= n; l++ {
+		for i := range n - l + 1 {
+			j := i + l - 1
+			freqs := 0
+			for k := i; k <= j; k++ {
+				counter++
+				candidate := 0
+				// When both conditionals below are true, k has 2 child nodes,
+				// which contain subtrees: left: [i..k) and right: (k..j]
+				if k > i {
+					candidate += dp[i][k-1]
+				}
+				if k < j {
+					candidate += dp[k+1][j]
+				}
+				dp[i][j] = min(dp[i][j], candidate)
+				if dp[i][j] == candidate {
+					roots[i][j] = k
+				}
+				freqs += f[k]
+			}
+			dp[i][j] += freqs
+		}
+	}
+	// fmt.Println(roots)
+	printOptimalBST(roots, f)
+	return dp[0][n-1]
+}
+
+func printOptimalBST(root [][]int, frequencies []int) {
+	n := len(frequencies)
+	if n == 0 {
+		fmt.Println("(empty)")
+		return
+	}
+
+	var draw func(i, j int, prefix string, isLeft bool)
+
+	draw = func(i, j int, prefix string, isLeft bool) {
+		if i > j {
+			return
+		}
+
+		r := root[i][j]
+
+		// Print the right subtree above the current node.
+		if r < j {
+			nextPrefix := prefix
+			if isLeft {
+				nextPrefix += "│   "
+			} else {
+				nextPrefix += "    "
+			}
+			draw(r+1, j, nextPrefix, false)
+		}
+
+		connector := "┌── "
+		if isLeft {
+			connector = "└── "
+		}
+
+		fmt.Printf("%s%sk%d: %d\n",
+			prefix, connector, r, frequencies[r])
+
+		// Print the left subtree below the current node.
+		if r > i {
+			nextPrefix := prefix
+			if isLeft {
+				nextPrefix += "    "
+			} else {
+				nextPrefix += "│   "
+			}
+			draw(i, r-1, nextPrefix, true)
+		}
+	}
+
+	r := root[0][n-1]
+
+	// Draw the root separately so it has no connector.
+	if r < n-1 {
+		draw(r+1, n-1, "", false)
+	}
+
+	fmt.Printf("k%d: %d\n", r, frequencies[r])
+
+	if r > 0 {
+		draw(0, r-1, "", true)
+	}
+	fmt.Println()
+}
+
+func lcsDP(x, y string) int {
+	n, m := len(x), len(y)
+	dp := make([][]int, n+1)
+	for i := range dp {
+		dp[i] = make([]int, m+1)
+	}
+
+	for i := 1; i <= n; i++ {
+		for j := 1; j <= m; j++ {
+			if x[i-1] == y[j-1] {
+				dp[i][j] = 1 + dp[i-1][j-1]
+			} else {
+				dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+			}
+		}
+	}
+	fmt.Println(dp)
+	return dp[n][m]
 }
